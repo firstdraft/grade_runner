@@ -16,8 +16,8 @@ Juwelier::Tasks.new do |gem|
   gem.name = "grade_runner"
   gem.homepage = "http://github.com/firstdraft/grade_runner"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{A Ruby client for [firstdraft Grades](https://grades.firstdraft.com)}
+  gem.description = %Q{This gem runs your RSpec test suite and posts the JSON output to grades.firstdraft.com.}
   gem.email = "raghu@firstdraft.com"
   gem.authors = ["Raghu Betina"]
 

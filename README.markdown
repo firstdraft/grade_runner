@@ -2,6 +2,20 @@
 
 A Ruby client for [firstdraft Grades](https://grades.firstdraft.com)
 
+
+## Installation
+
+Add this line to your application's Gemfile:
+
+```ruby
+gem "grade_runner", git: "https://github.com/firstdraft/web_git"
+```
+
+And then execute:
+```bash
+$ bundle
+```
+
 Copyright
 ---------
 

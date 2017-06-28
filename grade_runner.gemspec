@@ -26,8 +26,11 @@ Gem::Specification.new do |s|
     "LICENSE.txt",
     "README.markdown",
     "Rakefile",
-    "VERSION",
-    "lib/grade_runner.rb"
+    "lib/grade_runner.rb",
+    "lib/grade_runner/railtie.rb",
+    "lib/grade_runner/runner.rb",
+    "lib/tasks/grade_runner.rake",
+    "spec/spec_helper.rb"
   ]
   s.homepage = "http://github.com/firstdraft/grade_runner".freeze
   s.licenses = ["MIT".freeze]

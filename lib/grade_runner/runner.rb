@@ -29,7 +29,7 @@ module GradeRunner
     end
 
     def run_rspec
-      `bundle exec rspec --order default --format json`
+      `bundle exec rspec --order default --format JsonOutputFormatter`
     end
 
     def data

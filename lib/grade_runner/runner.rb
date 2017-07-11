@@ -37,7 +37,9 @@ module GradeRunner
         project_token: @project_token,
         access_token: @grades_access_token,
         test_output: @rspec_output_json,
-        commit_sha: ENV['CIRCLE_SHA1']
+        commit_sha: ENV["CIRCLE_SHA1"],
+        username: ENV["CIRCLE_PROJECT_USERNAME"],
+        reponame: ENV["CIRCLE_PROJECT_REPONAME"]
       }
     end
 

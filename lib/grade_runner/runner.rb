@@ -11,7 +11,8 @@ module GradeRunner
 
     def process
       puts "* Running tests and submitting the results."
-      @rspec_output_json = JSON.parse(run_rspec)
+      dir = File.join(ENV['CIRCLE_ARTIFACTS'], "coverage")
+      @rspec_output_json = JSON.parse(path)
       post_to_grades
     end
 
@@ -28,8 +29,8 @@ module GradeRunner
       puts "- Done! Results URL: " + "#{results_url}"
     end
 
-    def run_rspec
-      `bundle exec rspec --order default --format JsonOutputFormatter`
+    def path
+      File.read("#{ENV['CIRCLE_ARTIFACTS']}/output/rspec_output.json")
     end
 
     def data

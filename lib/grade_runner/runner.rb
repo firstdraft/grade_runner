@@ -11,7 +11,6 @@ module GradeRunner
 
     def process
       puts "* Running tests and submitting the results."
-      dir = File.join(ENV['CIRCLE_ARTIFACTS'], "coverage")
       @rspec_output_json = JSON.parse(path)
       post_to_grades
     end

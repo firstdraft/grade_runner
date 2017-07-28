@@ -3,7 +3,7 @@ namespace :grade_runner do
   task runner: :environment do
     config_file_name = Rails.root.join(".firstdraft_project.yml")
     config = YAML.load_file(config_file_name)
-    rspec_output_json = File.read("#{ENV['CIRCLE_ARTIFACTS']}/output/rspec_output.json")
+    rspec_output_json = JSON.parse(File.read("#{ENV['CIRCLE_ARTIFACTS']}/output/rspec_output.json"))
     username = ENV["CIRCLE_PROJECT_USERNAME"]
     reponame = ENV["CIRCLE_PROJECT_REPONAME"]
     sha = ENV["CIRCLE_SHA1"]

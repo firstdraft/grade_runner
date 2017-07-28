@@ -2,16 +2,18 @@ require "net/http"
 module GradeRunner
   class Runner
 
-    def initialize(project_token, submission_url, grades_access_token)
+    def initialize(project_token, submission_url, grades_access_token, rspec_output_json, username, reponame, sha)
       @project_token = project_token
       @submission_url = submission_url
       @grades_access_token = grades_access_token
-      @rspec_output_json = nil
+      @rspec_output_json = rspec_output_json
+      @username = username
+      @reponame = reponame
+      @sha = sha
     end
 
     def process
-      puts "* Running tests and submitting the results."
-      @rspec_output_json = JSON.parse(path)
+      puts "* Submitting the results."
       post_to_grades
     end
 
@@ -28,18 +30,14 @@ module GradeRunner
       puts "- Done! Results URL: " + "#{results_url}"
     end
 
-    def path
-      File.read("#{ENV['CIRCLE_ARTIFACTS']}/output/rspec_output.json")
-    end
-
     def data
       {
         project_token: @project_token,
         access_token: @grades_access_token,
         test_output: @rspec_output_json,
-        commit_sha: ENV["CIRCLE_SHA1"],
-        username: ENV["CIRCLE_PROJECT_USERNAME"],
-        reponame: ENV["CIRCLE_PROJECT_REPONAME"]
+        commit_sha: @sha,
+        username: @username,
+        reponame: @reponame
       }
     end
 

@@ -5,6 +5,7 @@ module GradeRunner
 
      rake_tasks do
       load "tasks/grade_runner.rake"
+      load "tasks/grade.rake"
      end
   end
 end

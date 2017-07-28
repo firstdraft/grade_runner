@@ -2,20 +2,18 @@ require "net/http"
 module GradeRunner
   class Runner
 
-    def initialize(project_token, submission_url, grades_access_token, path, username, reponame, sha)
+    def initialize(project_token, submission_url, grades_access_token, rspec_output_json, username, reponame, sha)
       @project_token = project_token
       @submission_url = submission_url
       @grades_access_token = grades_access_token
-      @rspec_output_json = nil
-      @path = path
+      @rspec_output_json = rspec_output_json
       @username = username
       @reponame = reponame
       @sha = sha
     end
 
     def process
-      puts "* Running tests and submitting the results."
-      @rspec_output_json = JSON.parse(@path)
+      puts "* Submitting the results."
       post_to_grades
     end
 

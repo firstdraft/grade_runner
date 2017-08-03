@@ -11,7 +11,7 @@ namespace :grade_runner do
     if token.present?
       GradeRunner::Runner.new(config['project_token'], config['submission_url'], token, rspec_output_json, username, reponame, sha, 'circle_ci').process
     else
-      puts "Please launch assignment from canvas and run rails grade manually as show in launch page from canvas"
+      puts "Token not present. Build not posted to canvas. Please run rails grade manually as shown in launch page from canvas"
     end
   end
 end

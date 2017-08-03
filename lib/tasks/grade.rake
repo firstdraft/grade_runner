@@ -12,5 +12,7 @@ task :grade, :token do |t, args|
   sha = `git rev-parse --verify HEAD`.chomp
   if token.present?
     GradeRunner::Runner.new(config['project_token'], config['submission_url'], token, rspec_output_json, username, reponame, sha, 'manual').process
+  else
+    puts "Token not available. Build not submitted to canvas. Please launch from canvas assignment and run rails grade as shown in resource page."
   end
 end

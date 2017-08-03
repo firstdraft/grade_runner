@@ -10,5 +10,7 @@ task :grade, :token do |t, args|
   username = git_url.split(':')[1].split('/')[0]
   reponame =  git_url.split(':')[1].split('/')[1].sub(".git", "")
   sha = `git rev-parse --verify HEAD`.chomp
-  GradeRunner::Runner.new(config['project_token'], config['submission_url'], token, rspec_output_json, username, reponame, sha).process
+  if token.present?
+    GradeRunner::Runner.new(config['project_token'], config['submission_url'], token, rspec_output_json, username, reponame, sha, 'manual').process
+  end
 end

@@ -13,6 +13,6 @@ task :grade, :token do |t, args|
   if token.present?
     GradeRunner::Runner.new(config['project_token'], config['submission_url'], token, rspec_output_json, username, reponame, sha, 'manual').process
   else
-    puts "Token not available. Build not submitted to canvas. Please launch from canvas assignment and run rails grade as shown in resource page."
+    puts "We couldn't find your access token, so we couldn't record your grade. Please click on the assignment link again and run the rails grade ...  command shown there."
   end
 end

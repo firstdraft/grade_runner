@@ -13,6 +13,8 @@ namespace :grade do
 
     rspec_output_json = JSON.parse(File.read(path))
     config_file_name = Rails.root.join(".firstdraft_project.yml")
+    submission_url = "https://grades.firstdraft.com/builds"
+
     config = YAML.load_file(config_file_name)
 
     git_url = `git config --get remote.origin.url`.chomp
@@ -21,7 +23,7 @@ namespace :grade do
     sha = `git rev-parse --verify HEAD`.chomp
 
     if token.present?
-      GradeRunner::Runner.new(config["project_token"], config["submission_url"], token, rspec_output_json, username, reponame, sha, "manual").process
+      GradeRunner::Runner.new(config["project_token"], (config["submission_url"] || submission_url), token, rspec_output_json, username, reponame, sha, "manual").process
     else
       puts "We couldn't find your access token, so we couldn't record your grade. Please click on the assignment link again and run the rails grade ...  command shown there."
     end

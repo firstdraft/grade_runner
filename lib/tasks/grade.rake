@@ -1,16 +1,14 @@
-require 'optparse'
-
-desc "Grade"
+desc "Alias for \"grade:next\"."
 task grade: "grade:next" do
 end
 
 namespace :grade do
-  desc "Grade All"
+  desc "Run all tests and submit a build report."
   task all: :environment do
     ARGV.each { |a| task a.to_sym do ; end }
     token = ARGV[1]
     
-    path = Rails.root + "/tmp/output" + "#{SecureRandom.hex}.json"
+    path = Rails.root.join("/tmp/output/#{Time.now.to_i}.json")
     `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
 
     rspec_output_json = JSON.parse(File.read(path))
@@ -23,15 +21,15 @@ namespace :grade do
     sha = `git rev-parse --verify HEAD`.chomp
 
     if token.present?
-      GradeRunner::Runner.new(config['project_token'], config['submission_url'], token, rspec_output_json, username, reponame, sha, 'manual').process
+      GradeRunner::Runner.new(config["project_token"], config["submission_url"], token, rspec_output_json, username, reponame, sha, "manual").process
     else
       puts "We couldn't find your access token, so we couldn't record your grade. Please click on the assignment link again and run the rails grade ...  command shown there."
     end
   end
 
-  desc "Grade Next"
+  desc "Run only the next failing test."
   task next: :environment do
-    path = Rails.root + "examples.txt"
+    path = Rails.root.join("examples.txt")
     if File.exist?(path)
       puts `RAILS_ENV=test bundle exec rspec --next-failure`
     else

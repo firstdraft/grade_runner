@@ -6,19 +6,45 @@ namespace :grade do
   desc "Run all tests and submit a build report."
   task all: :environment do
     ARGV.each { |a| task a.to_sym do ; end }
-    token = ARGV[1]
-    
+    input_token = ARGV[1]
+    file_token = nil
+
     path = Rails.root.join("/tmp/output/#{Time.now.to_i}.json")
     `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
 
     rspec_output_json = JSON.parse(File.read(path))
-    config_file_name = Rails.root.join(".firstdraft_project.yml")
+    config_file_name = Rails.root.join(".grades.yml")
+    student_config = {}
+    student_config["submission_url"] = "https://grades.firstdraft.com/builds"
+    student_config["project_token"] = ""
     
     if File.exist?(config_file_name)
       config = YAML.load_file(config_file_name)
       submission_url, project_token = config["submission_url"], config["project_token"]
+      file_token = config["project_token"]
     else
       submission_url, project_token = "https://grades.firstdraft.com/builds", ''
+    end
+
+    if input_token.present?
+      token = input_token
+      student_config["personal_access_token"] = input_token
+      update_config_file(config_file_name, student_config)
+    elsif input_token.nil? && file_token.present?
+      token = file_token
+    elsif input_token.nil? && file_token.nil?
+      puts "Enter your access token for this project"
+      new_personal_access_token = ""
+
+      while new_personal_access_token == "" do
+        print "> "
+        new_personal_access_token = $stdin.gets.chomp.strip
+        if new_personal_access_token != ""
+          student_config["personal_access_token"] = new_personal_access_token
+          update_config_file(config_file_name, student_config)
+          token = new_personal_access_token
+        end
+      end
     end
 
     git_url = `git config --get remote.origin.url`.chomp
@@ -44,4 +70,8 @@ namespace :grade do
     end
   end
 
+end
+
+def update_config_file(config_file_name, config)
+  File.write(config_file_name, YAML.dump(config))
 end

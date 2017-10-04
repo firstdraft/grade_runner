@@ -21,7 +21,7 @@ namespace :grade do
     if File.exist?(config_file_name)
       config = YAML.load_file(config_file_name)
       submission_url, project_token = config["submission_url"], config["project_token"]
-      file_token = config["project_token"]
+      file_token = config["personal_access_token"]
     else
       submission_url, project_token = "https://grades.firstdraft.com/builds", ''
     end

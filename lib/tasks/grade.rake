@@ -1,18 +1,77 @@
-desc "Grade project"
-task :grade, :token do |t, args|
-  token = args[:token]
-  path = Rails.root + "/tmp/output" + "#{SecureRandom.hex}.json"
-  `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
-  rspec_output_json = JSON.parse(File.read(path))
-  config_file_name = Rails.root.join(".firstdraft_project.yml")
-  config = YAML.load_file(config_file_name)
-  git_url = `git config --get remote.origin.url`.chomp
-  username = git_url.split(':')[1].split('/')[0]
-  reponame =  git_url.split(':')[1].split('/')[1].sub(".git", "")
-  sha = `git rev-parse --verify HEAD`.chomp
-  if token.present?
-    GradeRunner::Runner.new(config['project_token'], config['submission_url'], token, rspec_output_json, username, reponame, sha, 'manual').process
-  else
-    puts "We couldn't find your access token, so we couldn't record your grade. Please click on the assignment link again and run the rails grade ...  command shown there."
+desc "Alias for \"grade:next\"."
+task grade: "grade:next" do
+end
+
+namespace :grade do
+  desc "Run all tests and submit a build report."
+  task all: :environment do
+    ARGV.each { |a| task a.to_sym do ; end }
+    input_token = ARGV[1]
+    file_token = nil
+
+    path = Rails.root.join("/tmp/output/#{Time.now.to_i}.json")
+    `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
+
+    rspec_output_json = JSON.parse(File.read(path))
+    config_file_name = Rails.root.join(".grades.yml")
+    student_config = {}
+    student_config["submission_url"] = "https://grades.firstdraft.com/builds"
+    student_config["project_token"] = ""
+    
+    if File.exist?(config_file_name)
+      config = YAML.load_file(config_file_name)
+      submission_url, project_token = config["submission_url"], config["project_token"]
+      file_token = config["personal_access_token"]
+    else
+      submission_url, project_token = "https://grades.firstdraft.com/builds", ''
+    end
+
+    if input_token.present?
+      token = input_token
+      student_config["personal_access_token"] = input_token
+      update_config_file(config_file_name, student_config)
+    elsif input_token.nil? && file_token.present?
+      token = file_token
+    elsif input_token.nil? && file_token.nil?
+      puts "Enter your access token for this project"
+      new_personal_access_token = ""
+
+      while new_personal_access_token == "" do
+        print "> "
+        new_personal_access_token = $stdin.gets.chomp.strip
+        if new_personal_access_token != ""
+          student_config["personal_access_token"] = new_personal_access_token
+          update_config_file(config_file_name, student_config)
+          token = new_personal_access_token
+        end
+      end
+    end
+
+    git_url = `git config --get remote.origin.url`.chomp
+    username = git_url.split(':')[1].split('/')[0]
+    reponame =  git_url.split(':')[1].split('/')[1].sub(".git", "")
+    sha = `git rev-parse --verify HEAD`.chomp
+
+    if token.present?
+      GradeRunner::Runner.new(project_token, submission_url, token, rspec_output_json, username, reponame, sha, "manual").process
+    else
+      puts "We couldn't find your access token, so we couldn't record your grade. Please click on the assignment link again and run the rails grade ...  command shown there."
+    end
   end
+
+  desc "Run only the next failing test."
+  task next: :environment do
+    path = Rails.root.join("examples.txt")
+    if File.exist?(path)
+      puts `RAILS_ENV=test bundle exec rspec --next-failure`
+    else
+      puts `RAILS_ENV=test bundle exec rspec`
+      puts "Please rerun rails grade:next to run the first failing spec"
+    end
+  end
+
+end
+
+def update_config_file(config_file_name, config)
+  File.write(config_file_name, YAML.dump(config))
 end

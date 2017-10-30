@@ -18,6 +18,7 @@ namespace :grade do
       config = YAML.load_file(config_file_name)
       submission_url, project_token = config["submission_url"], config["project_token"]
       file_token = config["personal_access_token"]
+      student_config["submission_url"] = config["submission_url"]
     else
       submission_url, project_token = "https://grades.firstdraft.com", ''
     end
@@ -85,12 +86,11 @@ def is_valid_token?(root_url, token)
   url = "#{root_url}/submissions/validate_token?token=#{token}"
   uri = URI.parse(url)
   req = Net::HTTP::Get.new(uri, 'Content-Type' => 'application/json')
-  req.body = data.to_json
   res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
     http.request(req)
   end
-  result = JSON.parse(res.body)["success"]
-  result[:success]
+  result = JSON.parse(res.body)
+  result["success"]
 rescue => e
   return false
 end

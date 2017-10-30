@@ -13,7 +13,7 @@ namespace :grade do
     student_config = {}
     student_config["submission_url"] = "https://grades.firstdraft.com"
     student_config["project_token"] = ""
-    
+
     if File.exist?(config_file_name)
       config = YAML.load_file(config_file_name)
       submission_url, project_token = config["submission_url"], config["project_token"]
@@ -37,7 +37,7 @@ namespace :grade do
         print "> "
         new_personal_access_token = $stdin.gets.chomp.strip
 
-        if new_personal_access_token!= "" && is_valid_token?(submission_url, new_personal_access_token) == false
+        if new_personal_access_token == ""
           puts "Please enter valid token"
           new_personal_access_token = ""
         end

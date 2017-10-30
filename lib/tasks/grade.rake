@@ -9,21 +9,18 @@ namespace :grade do
     input_token = ARGV[1]
     file_token = nil
 
-    path = Rails.root.join("/tmp/output/#{Time.now.to_i}.json")
-    `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
-
-    rspec_output_json = JSON.parse(File.read(path))
-    config_file_name = Rails.root.join(".grades.yml")
+    config_file_name = Rails.root.join("grades.yml")
     student_config = {}
-    student_config["submission_url"] = "https://grades.firstdraft.com/builds"
+    student_config["submission_url"] = "https://grades.firstdraft.com"
     student_config["project_token"] = ""
     
     if File.exist?(config_file_name)
       config = YAML.load_file(config_file_name)
       submission_url, project_token = config["submission_url"], config["project_token"]
       file_token = config["personal_access_token"]
+      student_config["submission_url"] = config["submission_url"]
     else
-      submission_url, project_token = "https://grades.firstdraft.com/builds", ''
+      submission_url, project_token = "https://grades.firstdraft.com", ''
     end
 
     if input_token.present?
@@ -39,6 +36,12 @@ namespace :grade do
       while new_personal_access_token == "" do
         print "> "
         new_personal_access_token = $stdin.gets.chomp.strip
+
+        if new_personal_access_token!= "" && is_valid_token?(submission_url, new_personal_access_token) == false
+          puts "Please enter valid token"
+          new_personal_access_token = ""
+        end
+
         if new_personal_access_token != ""
           student_config["personal_access_token"] = new_personal_access_token
           update_config_file(config_file_name, student_config)
@@ -47,12 +50,15 @@ namespace :grade do
       end
     end
 
-    git_url = `git config --get remote.origin.url`.chomp
-    username = git_url.split(':')[1].split('/')[0]
-    reponame =  git_url.split(':')[1].split('/')[1].sub(".git", "")
-    sha = `git rev-parse --verify HEAD`.chomp
-
     if token.present?
+      path = Rails.root.join("/tmp/output/#{Time.now.to_i}.json")
+      `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
+      rspec_output_json = JSON.parse(File.read(path))
+      git_url = `git config --get remote.origin.url`.chomp
+      username = git_url.split(':')[1].split('/')[0]
+      reponame =  git_url.split(':')[1].split('/')[1].sub(".git", "")
+      sha = `git rev-parse --verify HEAD`.chomp
+
       GradeRunner::Runner.new(project_token, submission_url, token, rspec_output_json, username, reponame, sha, "manual").process
     else
       puts "We couldn't find your access token, so we couldn't record your grade. Please click on the assignment link again and run the rails grade ...  command shown there."
@@ -74,4 +80,17 @@ end
 
 def update_config_file(config_file_name, config)
   File.write(config_file_name, YAML.dump(config))
+end
+
+def is_valid_token?(root_url, token)
+  url = "#{root_url}/submissions/validate_token?token=#{token}"
+  uri = URI.parse(url)
+  req = Net::HTTP::Get.new(uri, 'Content-Type' => 'application/json')
+  res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+    http.request(req)
+  end
+  result = JSON.parse(res.body)
+  result["success"]
+rescue => e
+  return false
 end

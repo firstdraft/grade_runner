@@ -2,9 +2,9 @@ require "net/http"
 module GradeRunner
   class Runner
 
-    def initialize(project_token, submission_url, grades_access_token, rspec_output_json, username, reponame, sha, source)
+    def initialize(project_token, submission_root_url, grades_access_token, rspec_output_json, username, reponame, sha, source)
       @project_token = project_token
-      @submission_url = submission_url
+      @submission_url = submission_root_url + submission_path
       @grades_access_token = grades_access_token
       @rspec_output_json = rspec_output_json
       @username = username
@@ -29,6 +29,10 @@ module GradeRunner
       end
       results_url = JSON.parse(res.body)["url"]
       puts "- Done! Results URL: " + "#{results_url}"
+    end
+
+    def submission_path
+      "/builds"
     end
 
     def data

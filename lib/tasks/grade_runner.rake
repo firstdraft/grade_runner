@@ -1,9 +1,9 @@
 namespace :grade_runner do
   desc "Grade project"
   task runner: :environment do
-    default_submission_url = "https://grades.firstdraft.com/builds"
+    default_submission_url = "https://grades.firstdraft.com"
     config = {}
-    path = Rails.root.join(".grades.yml")
+    path = Rails.root.join("grades.yml")
     if File.exist?(path)
       config = YAML.load_file(path)
     end

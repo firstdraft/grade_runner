@@ -69,7 +69,7 @@ namespace :grade do
   task next: :environment do
     path = Rails.root.join("examples.txt")
     if File.exist?(path)
-      puts `RAILS_ENV=test bundle exec rspec --next-failure`
+      puts `RAILS_ENV=test bundle exec rspec --next-failure --format HintFormatter`
     else
       puts `RAILS_ENV=test bundle exec rspec`
       puts "Please rerun rails grade:next to run the first failing spec"

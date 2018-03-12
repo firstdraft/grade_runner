@@ -52,6 +52,7 @@ namespace :grade do
 
     if token.present?
       path = Rails.root.join("/tmp/output/#{Time.now.to_i}.json")
+      `bin/rails db:migrate RAILS_ENV=test`
       `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
       rspec_output_json = JSON.parse(File.read(path))
       git_url = `git config --get remote.origin.url`.chomp
@@ -69,6 +70,7 @@ namespace :grade do
   task next: :environment do
     path = Rails.root.join("examples.txt")
     if File.exist?(path)
+      `bin/rails db:migrate RAILS_ENV=test`
       puts `RAILS_ENV=test bundle exec rspec --next-failure --format HintFormatter`
     else
       puts `RAILS_ENV=test bundle exec rspec`

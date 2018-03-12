@@ -15,7 +15,11 @@ namespace :grade do
     student_config["project_token"] = ""
     
     if File.exist?(config_file_name)
-      config = YAML.load_file(config_file_name)
+      begin
+        config = YAML.load_file(config_file_name)
+      rescue
+        abort "Something went wrong with grades.yml file. Please verify.".red
+      end
       submission_url, project_token = config["submission_url"], config["project_token"]
       file_token = config["personal_access_token"]
       student_config["submission_url"] = config["submission_url"]

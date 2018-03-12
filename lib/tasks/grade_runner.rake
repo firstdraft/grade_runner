@@ -5,7 +5,11 @@ namespace :grade_runner do
     config = {}
     path = Rails.root.join("grades.yml")
     if File.exist?(path)
-      config = YAML.load_file(path)
+      begin
+        config = YAML.load_file(path)
+      rescue
+        abort "Something went wrong with grades.yml file. Please verify.".red
+      end
     end
     rspec_output_json = JSON.parse(File.read("#{ENV['CIRCLE_ARTIFACTS']}/output/rspec_output.json"))
     username = ENV["CIRCLE_PROJECT_USERNAME"]

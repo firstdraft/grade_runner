@@ -8,7 +8,7 @@ namespace :grade_runner do
       begin
         config = YAML.load_file(path)
       rescue
-        abort "Something went wrong with grades.yml file. Please verify.".red
+        abort "It looks like there's something wrong with your token in `/grades.yml`. Please delete that file and try `rails grade:all` again, and be sure to provide the access token for THIS project.".red
       end
     end
     rspec_output_json = JSON.parse(File.read("#{ENV['CIRCLE_ARTIFACTS']}/output/rspec_output.json"))

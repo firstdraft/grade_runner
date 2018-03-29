@@ -1,5 +1,5 @@
 desc "Alias for \"grade:next\"."
-task grade: "grade:next" do
+task grade: "grade:all" do
 end
 
 namespace :grade do
@@ -13,7 +13,7 @@ namespace :grade do
     student_config = {}
     student_config["submission_url"] = "https://grades.firstdraft.com"
     student_config["project_token"] = ""
-    
+
     if File.exist?(config_file_name)
       begin
         config = YAML.load_file(config_file_name)

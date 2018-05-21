@@ -52,18 +52,22 @@ namespace :grade do
         end
       end
     end
+    
+    if token.present? 
+      if is_valid_token?(submission_url, token) == false
+        puts "Access token is wrong. Please click on the assignment link again and run the rails grade ...  command shown there."
+      else
+        path = Rails.root.join("/tmp/output/#{Time.now.to_i}.json")
+        `bin/rails db:migrate RAILS_ENV=test`
+        `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
+        rspec_output_json = JSON.parse(File.read(path))
+        git_url = `git config --get remote.origin.url`.chomp
+        username = git_url.split(':')[1].split('/')[0]
+        reponame =  git_url.split(':')[1].split('/')[1].sub(".git", "")
+        sha = `git rev-parse --verify HEAD`.chomp
 
-    if token.present?
-      path = Rails.root.join("/tmp/output/#{Time.now.to_i}.json")
-      `bin/rails db:migrate RAILS_ENV=test`
-      `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
-      rspec_output_json = JSON.parse(File.read(path))
-      git_url = `git config --get remote.origin.url`.chomp
-      username = git_url.split(':')[1].split('/')[0]
-      reponame =  git_url.split(':')[1].split('/')[1].sub(".git", "")
-      sha = `git rev-parse --verify HEAD`.chomp
-
-      GradeRunner::Runner.new(submission_url, token, rspec_output_json, username, reponame, sha, "manual").process
+        GradeRunner::Runner.new(submission_url, token, rspec_output_json, username, reponame, sha, "manual").process
+      end
     else
       puts "We couldn't find your access token, so we couldn't record your grade. Please click on the assignment link again and run the rails grade ...  command shown there."
     end

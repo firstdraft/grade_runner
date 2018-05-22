@@ -94,6 +94,7 @@ def update_config_file(config_file_name, config)
 end
 
 def is_valid_token?(root_url, token)
+  return false unless token.is_a?(String) && token =~ /^[1-9A-Za-z][^OIl]{23}$/
   url = "#{root_url}/submissions/validate_token?token=#{token}"
   uri = URI.parse(url)
   req = Net::HTTP::Get.new(uri, 'Content-Type' => 'application/json')

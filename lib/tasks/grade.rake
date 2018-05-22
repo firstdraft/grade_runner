@@ -55,7 +55,9 @@ namespace :grade do
     
     if token.present? 
       if is_valid_token?(submission_url, token) == false
-        puts "Access token is wrong. Please click on the assignment link again and run the rails grade ...  command shown there."
+        student_config["personal_access_token"] = nil
+        update_config_file(config_file_name, student_config)
+        puts "Your access token looked invalid, so we've reset it to be blank. Please re-run rails grade and, when asked, copy-paste your token carefully from the assignment page."
       else
         path = Rails.root.join("/tmp/output/#{Time.now.to_i}.json")
         `bin/rails db:migrate RAILS_ENV=test`

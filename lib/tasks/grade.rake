@@ -52,18 +52,24 @@ namespace :grade do
         end
       end
     end
+    
+    if token.present? 
+      if is_valid_token?(submission_url, token) == false
+        student_config["personal_access_token"] = nil
+        update_config_file(config_file_name, student_config)
+        puts "Your access token looked invalid, so we've reset it to be blank. Please re-run rails grade and, when asked, copy-paste your token carefully from the assignment page."
+      else
+        path = Rails.root.join("/tmp/output/#{Time.now.to_i}.json")
+        `bin/rails db:migrate RAILS_ENV=test`
+        `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
+        rspec_output_json = JSON.parse(File.read(path))
+        git_url = `git config --get remote.origin.url`.chomp
+        username = git_url.split(':')[1].split('/')[0]
+        reponame =  git_url.split(':')[1].split('/')[1].sub(".git", "")
+        sha = `git rev-parse --verify HEAD`.chomp
 
-    if token.present?
-      path = Rails.root.join("/tmp/output/#{Time.now.to_i}.json")
-      `bin/rails db:migrate RAILS_ENV=test`
-      `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
-      rspec_output_json = JSON.parse(File.read(path))
-      git_url = `git config --get remote.origin.url`.chomp
-      username = git_url.split(':')[1].split('/')[0]
-      reponame =  git_url.split(':')[1].split('/')[1].sub(".git", "")
-      sha = `git rev-parse --verify HEAD`.chomp
-
-      GradeRunner::Runner.new(submission_url, token, rspec_output_json, username, reponame, sha, "manual").process
+        GradeRunner::Runner.new(submission_url, token, rspec_output_json, username, reponame, sha, "manual").process
+      end
     else
       puts "We couldn't find your access token, so we couldn't record your grade. Please click on the assignment link again and run the rails grade ...  command shown there."
     end
@@ -88,6 +94,7 @@ def update_config_file(config_file_name, config)
 end
 
 def is_valid_token?(root_url, token)
+  return false unless token.is_a?(String) && token =~ /^[1-9A-Za-z][^OIl]{23}$/
   url = "#{root_url}/submissions/validate_token?token=#{token}"
   uri = URI.parse(url)
   req = Net::HTTP::Get.new(uri, 'Content-Type' => 'application/json')

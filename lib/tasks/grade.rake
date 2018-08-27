@@ -12,7 +12,6 @@ namespace :grade do
     config_file_name = Rails.root.join("grades.yml")
     student_config = {}
     student_config["submission_url"] = "https://grades.firstdraft.com"
-    student_config["project_token"] = ""
 
     if File.exist?(config_file_name)
       begin
@@ -20,11 +19,11 @@ namespace :grade do
       rescue
         abort "It looks like there's something wrong with your token in `/grades.yml`. Please delete that file and try `rails grade:all` again, and be sure to provide the access token for THIS project.".red
       end
-      submission_url, project_token = config["submission_url"], config["project_token"]
+      submission_url = config["submission_url"]
       file_token = config["personal_access_token"]
       student_config["submission_url"] = config["submission_url"]
     else
-      submission_url, project_token = "https://grades.firstdraft.com", ''
+      submission_url = "https://grades.firstdraft.com"
     end
 
     if input_token.present?
@@ -64,7 +63,7 @@ namespace :grade do
       reponame =  git_url.split(':')[1].split('/')[1].sub(".git", "")
       sha = `git rev-parse --verify HEAD`.chomp
 
-      GradeRunner::Runner.new(project_token, submission_url, token, rspec_output_json, username, reponame, sha, "manual").process
+      GradeRunner::Runner.new(submission_url, token, rspec_output_json, username, reponame, sha, "manual").process
     else
       puts "We couldn't find your access token, so we couldn't record your grade. Please click on the assignment link again and run the rails grade ...  command shown there."
     end

@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Raghu Betina".freeze]
-  s.date = "2017-06-20"
+  s.date = "2019-05-01"
   s.description = "This gem runs your RSpec test suite and posts the JSON output to grades.firstdraft.com.".freeze
   s.email = "raghu@firstdraft.com".freeze
   s.extra_rdoc_files = [
@@ -26,15 +26,18 @@ Gem::Specification.new do |s|
     "LICENSE.txt",
     "README.markdown",
     "Rakefile",
+    "VERSION",
+    "grade_runner.gemspec",
     "lib/grade_runner.rb",
     "lib/grade_runner/railtie.rb",
     "lib/grade_runner/runner.rb",
+    "lib/tasks/grade.rake",
     "lib/tasks/grade_runner.rake",
     "spec/spec_helper.rb"
   ]
   s.homepage = "http://github.com/firstdraft/grade_runner".freeze
   s.licenses = ["MIT".freeze]
-  s.rubygems_version = "2.6.11".freeze
+  s.rubygems_version = "2.7.8".freeze
   s.summary = "A Ruby client for [firstdraft Grades](https://grades.firstdraft.com)".freeze
 
   if s.respond_to? :specification_version then

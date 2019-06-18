@@ -63,10 +63,9 @@ namespace :grade do
         `bin/rails db:migrate RAILS_ENV=test`
         `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
         rspec_output_json = JSON.parse(File.read(path))
-        git_url = `git config --get remote.origin.url`.chomp
-        username = git_url.split(':')[1].split('/')[0]
-        reponame =  git_url.split(':')[1].split('/')[1].sub(".git", "")
-        sha = `git rev-parse --verify HEAD`.chomp
+        username = ""
+        reponame = ""
+        sha = ""
 
         GradeRunner::Runner.new(submission_url, token, rspec_output_json, username, reponame, sha, "manual").process
       end

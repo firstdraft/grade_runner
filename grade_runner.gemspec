@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Raghu Betina".freeze]
-  s.date = "2019-06-19"
+  s.date = "2019-06-21"
   s.description = "This gem runs your RSpec test suite and posts the JSON output to grades.firstdraft.com.".freeze
   s.email = "raghu@firstdraft.com".freeze
   s.extra_rdoc_files = [
@@ -48,6 +48,7 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<rdoc>.freeze, ["~> 3.12"])
       s.add_development_dependency(%q<bundler>.freeze, ["~> 1.0"])
       s.add_development_dependency(%q<juwelier>.freeze, ["~> 2.1.0"])
+      s.add_development_dependency(%q<hashdiff>.freeze, [">= 1.0.0.beta1", "< 2.0.0"])
       s.add_development_dependency(%q<simplecov>.freeze, [">= 0"])
       s.add_development_dependency(%q<pry>.freeze, ["~> 0"])
       s.add_development_dependency(%q<pry-byebug>.freeze, ["~> 3"])
@@ -60,6 +61,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<rdoc>.freeze, ["~> 3.12"])
       s.add_dependency(%q<bundler>.freeze, ["~> 1.0"])
       s.add_dependency(%q<juwelier>.freeze, ["~> 2.1.0"])
+      s.add_dependency(%q<hashdiff>.freeze, [">= 1.0.0.beta1", "< 2.0.0"])
       s.add_dependency(%q<simplecov>.freeze, [">= 0"])
       s.add_dependency(%q<pry>.freeze, ["~> 0"])
       s.add_dependency(%q<pry-byebug>.freeze, ["~> 3"])
@@ -73,6 +75,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<rdoc>.freeze, ["~> 3.12"])
     s.add_dependency(%q<bundler>.freeze, ["~> 1.0"])
     s.add_dependency(%q<juwelier>.freeze, ["~> 2.1.0"])
+    s.add_dependency(%q<hashdiff>.freeze, [">= 1.0.0.beta1", "< 2.0.0"])
     s.add_dependency(%q<simplecov>.freeze, [">= 0"])
     s.add_dependency(%q<pry>.freeze, ["~> 0"])
     s.add_dependency(%q<pry-byebug>.freeze, ["~> 3"])

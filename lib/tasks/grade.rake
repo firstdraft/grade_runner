@@ -35,7 +35,7 @@ namespace :grade do
        !input_token.nil? && 
        input_token != [] && 
        input_token != {}
-       
+
       token = input_token
       student_config["personal_access_token"] = input_token
       update_config_file(config_file_name, student_config)
@@ -57,6 +57,7 @@ namespace :grade do
         new_personal_access_token = $stdin.gets.chomp.strip
 
         if new_personal_access_token!= "" && is_valid_token?(submission_url, new_personal_access_token) == false
+          p "You entered: #{new_personal_access_token}"
           puts "Please enter valid token"
           new_personal_access_token = ""
         end
@@ -119,6 +120,7 @@ end
 
 def is_valid_token?(root_url, token)
   return false unless token.is_a?(String) && token =~ /^[1-9A-Za-z][^OIl]{23}$/
+  p "remove me later"
   url = "#{root_url}/submissions/validate_token?token=#{token}"
   uri = URI.parse(url)
   req = Net::HTTP::Get.new(uri, 'Content-Type' => 'application/json')

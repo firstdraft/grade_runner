@@ -128,7 +128,8 @@ def is_valid_token?(root_url, token)
     http.request(req)
   end
   result = JSON.parse(res.body)
-  p result["success"]
+  p "Result: "
+  p result
   result["success"]
 rescue => e
   return false

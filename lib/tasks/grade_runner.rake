@@ -18,7 +18,7 @@ namespace :grade_runner do
     reponame = ENV["CIRCLE_PROJECT_REPONAME"]
     sha = ENV["CIRCLE_SHA1"]
     token = ENV['GRADES_PERSONAL_ACCESS_TOKEN']
-    if token.nil?
+    if !token.nil?
       GradeRunner::Runner.new('', config['submission_url'] || default_submission_url, token, rspec_output_json, username, reponame, sha, 'circle_ci').process
     else
       puts "We couldn't find your access token, so we couldn't record your grade. Please click on the assignment link again and run the rake grade ...  command shown there."

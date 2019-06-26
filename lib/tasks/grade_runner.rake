@@ -1,6 +1,6 @@
 namespace :grade_runner do
   desc "Grade project"
-  task runner: :environment do
+  task :runner do
     default_submission_url = "https://grades.firstdraft.com"
     config = {}
     path = Rails.root.join("grades.yml")

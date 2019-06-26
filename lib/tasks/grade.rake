@@ -58,6 +58,8 @@ namespace :grade do
 
         if new_personal_access_token!= "" && is_valid_token?(submission_url, new_personal_access_token) == false
           p "You entered: #{new_personal_access_token}"
+          p submission_url
+          p "---"
           puts "Please enter valid token"
           new_personal_access_token = ""
         end
@@ -121,7 +123,10 @@ end
 def is_valid_token?(root_url, token)
   return false unless token.is_a?(String) && !(token =~ /^[1-9A-Za-z][^OIl]{23}$/).nil?
   p "remove me later"
+  p token.is_a?(String) && !(token =~ /^[1-9A-Za-z][^OIl]{23}$/).nil?
+  p root_url
   url = "#{root_url}/submissions/validate_token?token=#{token}"
+  p url
   p "url: #{url}"
   uri = URI.parse(url)
   p "uri: #{uri.to_s}"

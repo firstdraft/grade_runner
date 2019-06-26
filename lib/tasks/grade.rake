@@ -13,7 +13,7 @@ namespace :grade do
     student_config = {}
     student_config["submission_url"] = "https://grades.firstdraft.com"
 
-    if File.exist?(config_file_name)
+    if File.file?(config_file_name)
       begin
         config = YAML.load_file(config_file_name)
       rescue
@@ -26,11 +26,11 @@ namespace :grade do
       submission_url = "https://grades.firstdraft.com"
     end
 
-    if input_token.present?
+    if input_token.nil?
       token = input_token
       student_config["personal_access_token"] = input_token
       update_config_file(config_file_name, student_config)
-    elsif input_token.nil? && file_token.present?
+    elsif input_token.nil? && file_token.nil?
       token = file_token
     elsif input_token.nil? && file_token.nil?
       puts "Enter your access token for this project"
@@ -53,7 +53,7 @@ namespace :grade do
       end
     end
     
-    if token.present? 
+    if token.nil? 
       if is_valid_token?(submission_url, token) == false
         student_config["personal_access_token"] = nil
         update_config_file(config_file_name, student_config)
@@ -79,7 +79,7 @@ namespace :grade do
   desc "Run only the next failing test."
   task :next do
     path = File.join(__dir__, "examples.txt")
-    if File.exist?(path)
+    if File.file?(path)
       # `bin/rails db:migrate RAILS_ENV=test`
       # puts `RAILS_ENV=test bundle exec rspec --next-failure --format HintFormatter`
       puts `bundle exec rspec --next-failure --format HintFormatter`

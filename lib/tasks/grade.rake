@@ -4,7 +4,7 @@ end
 
 namespace :grade do
   desc "Run all tests and submit a build report."
-  task all: :environment do
+  task :all do
     ARGV.each { |a| task a.to_sym do ; end }
     input_token = ARGV[1]
     file_token = nil
@@ -75,7 +75,7 @@ namespace :grade do
   end
 
   desc "Run only the next failing test."
-  task next: :environment do
+  task :next do
     path = Rails.root.join("examples.txt")
     if File.exist?(path)
       `bin/rails db:migrate RAILS_ENV=test`

@@ -1,3 +1,5 @@
+require 'yaml'
+
 namespace :grade_runner do
   desc "Grade project"
   task :runner do

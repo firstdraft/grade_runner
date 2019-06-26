@@ -1,3 +1,6 @@
+require 'yaml'
+require 'net/http'
+
 desc "Alias for \"grade:next\"."
 task grade: "grade:all" do
 end

@@ -122,15 +122,20 @@ def is_valid_token?(root_url, token)
   return false unless token.is_a?(String) && token =~ /^[1-9A-Za-z][^OIl]{23}$/
   p "remove me later"
   url = "#{root_url}/submissions/validate_token?token=#{token}"
+  p "url: #{url}"
   uri = URI.parse(url)
+  p "uri: #{uri.to_s}"
   req = Net::HTTP::Get.new(uri, 'Content-Type' => 'application/json')
   res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
     http.request(req)
+    p "httpi: #{http.request.to_s}"
   end
   result = JSON.parse(res.body)
   p "Result: "
   p result
   result["success"]
 rescue => e
+  p "error!"
+  p e
   return false
 end

@@ -119,7 +119,7 @@ def update_config_file(config_file_name, config)
 end
 
 def is_valid_token?(root_url, token)
-  return false unless token.is_a?(String) && token =~ /^[1-9A-Za-z][^OIl]{23}$/
+  return false unless token.is_a?(String) && !(token =~ /^[1-9A-Za-z][^OIl]{23}$/).nil?
   p "remove me later"
   url = "#{root_url}/submissions/validate_token?token=#{token}"
   p "url: #{url}"

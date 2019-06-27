@@ -9,7 +9,7 @@ namespace :grade do
     input_token = ARGV[1]
     file_token = nil
 
-    config_file_name = File.join(__dir__, "grades.yml")
+    config_file_name = Rails.root.join("grades.yml")
     student_config = {}
     student_config["submission_url"] = "https://grades.firstdraft.com"
 
@@ -17,7 +17,7 @@ namespace :grade do
       begin
         config = YAML.load_file(config_file_name)
       rescue
-        abort "It looks like there's something wrong with your token in `/grades.yml`. Please delete that file and try `rake grade:all` again, and be sure to provide the access token for THIS project.".red
+        abort "It looks like there's something wrong with your token in `/grades.yml`. Please delete that file and try `rails grade:all` again, and be sure to provide the access token for THIS project.".red
       end
       submission_url = config["submission_url"]
       file_token = config["personal_access_token"]
@@ -57,13 +57,11 @@ namespace :grade do
       if is_valid_token?(submission_url, token) == false
         student_config["personal_access_token"] = nil
         update_config_file(config_file_name, student_config)
-        puts "Your access token looked invalid, so we've reset it to be blank. Please re-run rake grade and, when asked, copy-paste your token carefully from the assignment page."
+        puts "Your access token looked invalid, so we've reset it to be blank. Please re-run rails grade and, when asked, copy-paste your token carefully from the assignment page."
       else
-        path = File.join(__dir__, "/tmp/output/#{Time.now.to_i}.json")
-        # `bin/rails db:migrate RAILS_ENV=test`
-        `bin/rake db:migrate`
-        # `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
-        `bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
+        path = Rails.root.join("/tmp/output/#{Time.now.to_i}.json")
+        `bin/rails db:migrate RAILS_ENV=test`
+        `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
         rspec_output_json = JSON.parse(File.read(path))
         username = ""
         reponame = ""
@@ -72,21 +70,19 @@ namespace :grade do
         GradeRunner::Runner.new(submission_url, token, rspec_output_json, username, reponame, sha, "manual").process
       end
     else
-      puts "We couldn't find your access token, so we couldn't record your grade. Please click on the assignment link again and run the rake grade ...  command shown there."
+      puts "We couldn't find your access token, so we couldn't record your grade. Please click on the assignment link again and run the rails grade ...  command shown there."
     end
   end
 
   desc "Run only the next failing test."
   task :next do
-    path = File.join(__dir__, "examples.txt")
+    path = Rails.root.join("examples.txt")
     if File.exist?(path)
-      # `bin/rails db:migrate RAILS_ENV=test`
-      # puts `RAILS_ENV=test bundle exec rspec --next-failure --format HintFormatter`
-      puts `bundle exec rspec --next-failure --format HintFormatter`
+      `bin/rails db:migrate RAILS_ENV=test`
+      puts `RAILS_ENV=test bundle exec rspec --next-failure --format HintFormatter`
     else
-      # puts `RAILS_ENV=test bundle exec rspec`
-      puts `bundle exec rspec`
-      puts "Please rerun rake grade:next to run the first failing spec"
+      puts `RAILS_ENV=test bundle exec rspec`
+      puts "Please rerun rails grade:next to run the first failing spec"
     end
   end
 

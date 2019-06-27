@@ -84,7 +84,7 @@ namespace :grade do
         update_config_file(config_file_name, student_config)
         puts "Your access token looked invalid, so we've reset it to be blank. Please re-run rake grade and, when asked, copy-paste your token carefully from the assignment page."
       else
-        path = File.join(__dir__, "/tmp/output/#{Time.now.to_i}.json")
+        path = File.join(project_root, "/tmp/output/#{Time.now.to_i}.json")
         # `bin/rails db:migrate RAILS_ENV=test`
         if Dir.exist?("bin")
           `bin/rake db:migrate`
@@ -152,4 +152,16 @@ rescue => e
   p "error!"
   p e
   return false
+end
+
+def project_root
+  if defined?(Rails)
+    return Rails.root
+  end
+
+  if defined?(Bundler)
+    return Bundler.root
+  end
+
+  Dir.pwd
 end

@@ -86,7 +86,9 @@ namespace :grade do
       else
         path = File.join(__dir__, "/tmp/output/#{Time.now.to_i}.json")
         # `bin/rails db:migrate RAILS_ENV=test`
-        `bin/rake db:migrate`
+        if Dir.exist?("bin")
+          `bin/rake db:migrate`
+        end
         # `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
         `bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
         rspec_output_json = JSON.parse(File.read(path))

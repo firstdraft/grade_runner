@@ -1,5 +1,6 @@
 require 'yaml'
 require 'net/http'
+require "json"
 
 desc "Alias for \"grade:next\"."
 task grade: "grade:all" do

@@ -140,8 +140,8 @@ def is_valid_token?(root_url, token)
     p http
     p req
     http.request(req)
-    p "httpi: #{}"
   end
+  p "done with request "
   result = JSON.parse(res.body)
   p "Result: "
   p result

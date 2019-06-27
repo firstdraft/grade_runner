@@ -135,6 +135,8 @@ def is_valid_token?(root_url, token)
   req = Net::HTTP::Get.new(uri, 'Content-Type' => 'application/json')
   p req
   res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+    p "net"
+    p http
     http.request(req)
     p "httpi: #{http.request.to_s}"
   end

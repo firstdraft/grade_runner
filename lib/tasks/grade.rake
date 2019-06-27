@@ -13,7 +13,7 @@ namespace :grade do
     input_token = ARGV[1]
     file_token = nil
 
-    config_file_name = File.join(__dir__, "grades.yml")
+    config_file_name = File.join(project_root, "grades.yml")
     student_config = {}
     student_config["submission_url"] = "https://grades.firstdraft.com"
 
@@ -85,6 +85,7 @@ namespace :grade do
         puts "Your access token looked invalid, so we've reset it to be blank. Please re-run rake grade and, when asked, copy-paste your token carefully from the assignment page."
       else
         path = File.join(project_root, "/tmp/output/#{Time.now.to_i}.json")
+        p path
         # `bin/rails db:migrate RAILS_ENV=test`
         if Dir.exist?("bin")
           `bin/rake db:migrate`

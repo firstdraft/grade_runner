@@ -91,7 +91,7 @@ namespace :grade do
           `bin/rake db:migrate`
         end
         # `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
-        `bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
+        `bundle exec rspec -I spec/support --order default --format JsonOutputFormatter --out #{path}`
         rspec_output_json = JSON.parse(File.read(path))
         username = ""
         reponame = ""

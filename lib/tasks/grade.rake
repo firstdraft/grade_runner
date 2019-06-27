@@ -137,6 +137,7 @@ def is_valid_token?(root_url, token)
   res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
     p "net"
     p http
+    p req
     http.request(req)
     p "httpi: #{http.request.to_s}"
   end

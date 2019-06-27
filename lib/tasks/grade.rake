@@ -130,7 +130,10 @@ def is_valid_token?(root_url, token)
   p "url: #{url}"
   uri = URI.parse(url)
   p "uri: #{uri.to_s}"
+  p uri.hostname
+  p uri.port
   req = Net::HTTP::Get.new(uri, 'Content-Type' => 'application/json')
+  p req
   res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
     http.request(req)
     p "httpi: #{http.request.to_s}"

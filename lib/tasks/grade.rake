@@ -59,9 +59,6 @@ namespace :grade do
         new_personal_access_token = $stdin.gets.chomp.strip
 
         if new_personal_access_token!= "" && is_valid_token?(submission_url, new_personal_access_token) == false
-          p "You entered: #{new_personal_access_token}"
-          p submission_url
-          p "---"
           puts "Please enter valid token"
           new_personal_access_token = ""
         end
@@ -86,7 +83,6 @@ namespace :grade do
         puts "Your access token looked invalid, so we've reset it to be blank. Please re-run rake grade and, when asked, copy-paste your token carefully from the assignment page."
       else
         path = File.join(project_root, "/tmp/output/#{Time.now.to_i}.json")
-        p path
         # `bin/rails db:migrate RAILS_ENV=test`
         if Dir.exist?("bin")
           `bin/rake db:migrate`
@@ -127,32 +123,19 @@ end
 
 def is_valid_token?(root_url, token)
   return false unless token.is_a?(String) && !(token =~ /^[1-9A-Za-z][^OIl]{23}$/).nil?
-  p "remove me later"
-  p token.is_a?(String) && !(token =~ /^[1-9A-Za-z][^OIl]{23}$/).nil?
-  p root_url
+
   url = "#{root_url}/submissions/validate_token?token=#{token}"
-  p url
-  p "url: #{url}"
   uri = URI.parse(url)
-  p "uri: #{uri.to_s}"
-  p uri.hostname
-  p uri.port
+  
   req = Net::HTTP::Get.new(uri, 'Content-Type' => 'application/json')
-  p req
+
   res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-    p "net"
-    p http
-    p req
     http.request(req)
   end
-  p "done with request "
+  
   result = JSON.parse(res.body)
-  p "Result: "
-  p result
   result["success"]
 rescue => e
-  p "error!"
-  p e
   return false
 end
 

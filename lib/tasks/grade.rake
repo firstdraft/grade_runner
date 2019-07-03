@@ -31,7 +31,7 @@ namespace :grade do
       submission_url = "https://grades.firstdraft.com"
     end
 
-    if input_token != false && input_token != "" && input_token !=  " " && !input_token.nil?
+    if input_token != "" && input_token !=  " " && !input_token.nil?
 
       token = input_token
       student_config["personal_access_token"] = input_token
@@ -60,7 +60,7 @@ namespace :grade do
       end
     end
     
-    if token != false && token != "" && token !=  " " && !token.nil?
+    if token != "" && token !=  " " && !token.nil?
       if is_valid_token?(submission_url, token) == false
         student_config["personal_access_token"] = nil
         update_config_file(config_file_name, student_config)

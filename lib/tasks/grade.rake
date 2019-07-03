@@ -31,7 +31,7 @@ namespace :grade do
       submission_url = "https://grades.firstdraft.com"
     end
 
-    if input_token != false && input_token != "" && input_token !=  " " && !input_token.nil? && input_token != [] && input_token != {}
+    if (input_token != false && input_token != "" && input_token !=  " " && !input_token.nil? && input_token != [] && input_token != {})
 
       token = input_token
       student_config["personal_access_token"] = input_token
@@ -47,7 +47,7 @@ namespace :grade do
         print "> "
         new_personal_access_token = $stdin.gets.chomp.strip
 
-        if new_personal_access_token!= "" && is_valid_token?(submission_url, new_personal_access_token) == false
+        if ((new_personal_access_token!= "") && i(s_valid_token?(submission_url, new_personal_access_token) == false))
           puts "Please enter valid token"
           new_personal_access_token = ""
         end
@@ -60,7 +60,7 @@ namespace :grade do
       end
     end
     
-    if token != false && token != "" && token !=  " " && !token.nil? && token != [] && token != {}
+    if (token != false && token != "" && token !=  " " && !token.nil? && token != [] && token != {})
       if is_valid_token?(submission_url, token) == false
         student_config["personal_access_token"] = nil
         update_config_file(config_file_name, student_config)

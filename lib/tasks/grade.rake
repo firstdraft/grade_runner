@@ -47,7 +47,7 @@ namespace :grade do
         print "> "
         new_personal_access_token = $stdin.gets.chomp.strip
 
-        if ((new_personal_access_token!= "") && i(s_valid_token?(submission_url, new_personal_access_token) == false))
+        if ((new_personal_access_token!= "") && (is_valid_token?(submission_url, new_personal_access_token) == false))
           puts "Please enter valid token"
           new_personal_access_token = ""
         end

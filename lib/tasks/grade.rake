@@ -36,7 +36,7 @@ namespace :grade do
       token = input_token
       student_config["personal_access_token"] = input_token
       update_config_file(config_file_name, student_config)
-    elsif input_token.nil? && file_token != false && file_token != "" && file_token !=  " " && !file_token.nil?
+    elsif input_token.nil? && file_token != "" && file_token !=  " " && !file_token.nil?
 
       token = file_token
     elsif input_token.nil? && file_token.nil?

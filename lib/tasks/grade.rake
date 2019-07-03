@@ -31,12 +31,12 @@ namespace :grade do
       submission_url = "https://grades.firstdraft.com"
     end
 
-    if (input_token != false && input_token != "" && input_token !=  " " && !input_token.nil? && input_token != [] && input_token != {})
+    if input_token != false && input_token != "" && input_token !=  " " && !input_token.nil?
 
       token = input_token
       student_config["personal_access_token"] = input_token
       update_config_file(config_file_name, student_config)
-    elsif input_token.nil? && file_token != false && file_token != "" && file_token !=  " " && !file_token.nil? &&  file_token != [] &&  file_token != {}
+    elsif input_token.nil? && file_token != false && file_token != "" && file_token !=  " " && !file_token.nil?
 
       token = file_token
     elsif input_token.nil? && file_token.nil?
@@ -47,7 +47,7 @@ namespace :grade do
         print "> "
         new_personal_access_token = $stdin.gets.chomp.strip
 
-        if ((new_personal_access_token!= "") && (is_valid_token?(submission_url, new_personal_access_token) == false))
+        if new_personal_access_token!= "" && is_valid_token?(submission_url, new_personal_access_token == false
           puts "Please enter valid token"
           new_personal_access_token = ""
         end
@@ -60,7 +60,7 @@ namespace :grade do
       end
     end
     
-    if (token != false && token != "" && token !=  " " && !token.nil? && token != [] && token != {})
+    if token != false && token != "" && token !=  " " && !token.nil?
       if is_valid_token?(submission_url, token) == false
         student_config["personal_access_token"] = nil
         update_config_file(config_file_name, student_config)
@@ -106,17 +106,13 @@ def update_config_file(config_file_name, config)
 end
 
 def is_valid_token?(root_url, token)
-  return false unless token.is_a?(String) && !(token =~ /^[1-9A-Za-z][^OIl]{23}$/).nil?
-
+  return false unless token.is_a?(String) && token =~ /^[1-9A-Za-z][^OIl]{23}$/
   url = "#{root_url}/submissions/validate_token?token=#{token}"
   uri = URI.parse(url)
-  
   req = Net::HTTP::Get.new(uri, 'Content-Type' => 'application/json')
-
   res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
     http.request(req)
   end
-  
   result = JSON.parse(res.body)
   result["success"]
 rescue => e

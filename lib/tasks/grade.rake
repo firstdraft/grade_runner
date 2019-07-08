@@ -3,13 +3,12 @@ require 'net/http'
 require "json"
 require_relative "../grade_runner/runner"
 
-desc "Alias for \"grade:next\"."
-task grade: "grade:all" do
-end
+# desc "Alias for \"grade:next\"."
+# task grade: "grade:all" do
+# end
 
-namespace :grade do
   desc "Run all tests and submit a build report."
-  task :all do
+  task :grade do
     p "hey"
     # ARGV.each { |a| task a.to_sym do ; end }
     # p "START OF FILE" #REMOVE
@@ -93,21 +92,20 @@ namespace :grade do
     # end
   end
 
-  desc "Run only the next failing test."
-  task :next do
-    path = File.join(__dir__, "examples.txt")
-    if File.file?(path)
-      # `bin/rails db:migrate RAILS_ENV=test`
-      # puts `RAILS_ENV=test bundle exec rspec --next-failure --format HintFormatter`
-      puts `bundle exec rspec --next-failure --format HintFormatter`
-    else
-      # puts `RAILS_ENV=test bundle exec rspec`
-      puts `bundle exec rspec`
-      puts "Please rerun rake grade:next to run the first failing spec"
-    end
-  end
+  # desc "Run only the next failing test."
+  # task :next do
+  #   path = File.join(__dir__, "examples.txt")
+  #   if File.file?(path)
+  #     # `bin/rails db:migrate RAILS_ENV=test`
+  #     # puts `RAILS_ENV=test bundle exec rspec --next-failure --format HintFormatter`
+  #     puts `bundle exec rspec --next-failure --format HintFormatter`
+  #   else
+  #     # puts `RAILS_ENV=test bundle exec rspec`
+  #     puts `bundle exec rspec`
+  #     puts "Please rerun rake grade:next to run the first failing spec"
+  #   end
+  # end
 
-end
 
 def update_config_file(config_file_name, config)
   File.write(config_file_name, YAML.dump(config))

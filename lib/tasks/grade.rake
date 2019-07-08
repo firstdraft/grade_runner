@@ -1,6 +1,8 @@
 require 'yaml'
 require 'net/http'
 require "json"
+require 'active_support'
+require 'active_support/core_ext'
 require_relative "../grade_runner/runner"
 
 desc "Alias for \"grade:next\"."
@@ -31,13 +33,11 @@ namespace :grade do
       submission_url = "https://grades.firstdraft.com"
     end
 
-    if input_token != "" && input_token !=  " " && !input_token.nil?
-
+    if input_token.present?
       token = input_token
       student_config["personal_access_token"] = input_token
       update_config_file(config_file_name, student_config)
-    elsif input_token.nil? && file_token != "" && file_token !=  " " && !file_token.nil?
-
+    elsif input_token.nil? && file_token.present?
       token = file_token
     elsif input_token.nil? && file_token.nil?
       puts "Enter your access token for this project"
@@ -60,7 +60,7 @@ namespace :grade do
       end
     end
     
-    if token != "" && token !=  " " && !token.nil?
+    if token.present? 
       if is_valid_token?(submission_url, token) == false
         student_config["personal_access_token"] = nil
         update_config_file(config_file_name, student_config)

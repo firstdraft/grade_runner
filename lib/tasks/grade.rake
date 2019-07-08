@@ -122,6 +122,5 @@ def project_root
   if defined?(Bundler)
     return Bundler.root
   end
-  p "project root" #REMOVE
   Dir.pwd
 end

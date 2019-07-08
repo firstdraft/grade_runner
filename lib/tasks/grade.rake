@@ -11,6 +11,8 @@ namespace :grade do
   desc "Run all tests and submit a build report."
   task :all do
     ARGV.each { |a| task a.to_sym do ; end }
+    p "START OF FILE" #REMOVE
+    p ARGV.count
     input_token = ARGV[1]
     file_token = nil
 

@@ -31,16 +31,21 @@ namespace :grade do
       submission_url = "https://grades.firstdraft.com"
     end
 
+    p "File found"#REMOVE
     if !input_token.nil?
+      p "input token:"#REMOVE
+      p input_token#REMOVE
       token = input_token
       student_config["personal_access_token"] = input_token
       update_config_file(config_file_name, student_config)
     elsif input_token.nil? && !file_token.nil?
+      p "file token"
+      p file_token
       token = file_token
     elsif input_token.nil? && file_token.nil?
       puts "Enter your access token for this project"
       new_personal_access_token = ""
-
+      p "Entering new token" #REMOVE
       while new_personal_access_token == "" do
         print "> "
         new_personal_access_token = $stdin.gets.chomp.strip
@@ -55,10 +60,12 @@ namespace :grade do
           update_config_file(config_file_name, student_config)
           token = new_personal_access_token
         end
+        p "end of loop" #REMOVE
       end
     end
     
     if !token.nil?
+      p "token not nil" #REMOVE
       if is_valid_token?(submission_url, token) == false
         student_config["personal_access_token"] = nil
         update_config_file(config_file_name, student_config)
@@ -104,6 +111,7 @@ def update_config_file(config_file_name, config)
 end
 
 def is_valid_token?(root_url, token)
+  p "is valid" #REMOVE
   return false unless token.is_a?(String) && token =~ /^[1-9A-Za-z][^OIl]{23}$/
   url = "#{root_url}/submissions/validate_token?token=#{token}"
   uri = URI.parse(url)
@@ -114,6 +122,8 @@ def is_valid_token?(root_url, token)
   result = JSON.parse(res.body)
   result["success"]
 rescue => e
+  p "error" #REMOVE
+  p e #REMOVE
   return false
 end
 
@@ -125,6 +135,6 @@ def project_root
   # if defined?(Bundler)
   #   return Bundler.root
   # end
-
+  p "project root" #REMOVE
   Dir.pwd
 end

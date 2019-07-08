@@ -118,13 +118,13 @@ rescue => e
 end
 
 def project_root
-  if defined?(Rails)
-    return Rails.root
-  end
+  # if defined?(Rails)
+  #   return Rails.root
+  # end
 
-  if defined?(Bundler)
-    return Bundler.root
-  end
+  # if defined?(Bundler)
+  #   return Bundler.root
+  # end
 
   Dir.pwd
 end

@@ -1,4 +1,6 @@
 require "net/http"
+require "oj"
+
 module GradeRunner
   class Runner
 
@@ -27,7 +29,8 @@ module GradeRunner
       res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
         http.request(req)
       end
-      results_url = JSON.parse(res.body)["url"]
+
+      results_url = Oj.load(res.body)["url"]
       puts "- Done! Results URL: " + "#{results_url}"
     end
 

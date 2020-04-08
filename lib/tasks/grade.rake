@@ -54,6 +54,7 @@ namespace :grade do
     end
     
     if token.present? 
+
       if is_valid_token?(submission_url, token) == false
         student_config["personal_access_token"] = nil
         update_config_file(config_file_name, student_config)
@@ -62,7 +63,7 @@ namespace :grade do
         path = Rails.root.join("/tmp/output/#{Time.now.to_i}.json")
         `bin/rails db:migrate RAILS_ENV=test`
         `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
-        rspec_output_json = JSON.parse(File.read(path))
+        rspec_output_json = Oj.load(File.read(path))
         username = ""
         reponame = ""
         sha = ""
@@ -100,7 +101,7 @@ def is_valid_token?(root_url, token)
   res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
     http.request(req)
   end
-  result = JSON.parse(res.body)
+  result = Oj.load(res.body)
   result["success"]
 rescue => e
   return false

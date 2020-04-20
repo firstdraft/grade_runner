@@ -50,6 +50,7 @@ GEM
       multi_json (~> 1.3)
       multi_xml (~> 0.5)
       rack (>= 1.2, < 3)
+    oj (3.10.6)
     pry (0.12.2)
       coderay (~> 1.1.0)
       method_source (~> 0.9.0)
@@ -102,6 +103,7 @@ PLATFORMS
 DEPENDENCIES
   bundler (~> 1.0)
   juwelier (~> 2.1.0)
+  oj
   pry (~> 0)
   pry-byebug (~> 3)
   pry-doc (~> 0)
@@ -113,4 +115,4 @@ DEPENDENCIES
   simplecov
 
 BUNDLED WITH
-   1.17.2
+   1.17.3

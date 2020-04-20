@@ -1,6 +1,7 @@
 require 'yaml'
 require 'net/http'
 require "json"
+require "oj"
 require_relative "../grade_runner/runner"
 
 # desc "Alias for \"grade:next\"."
@@ -64,12 +65,12 @@ require_relative "../grade_runner/runner"
       else
         path = File.join(project_root, "/tmp/output/#{Time.now.to_i}.json")
         # `bin/rails db:migrate RAILS_ENV=test`
-        if Dir.exist?("bin")
+        if File.file?("bin/rake")
           `bin/rake db:migrate`
         end
         # `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
-        `bundle exec rspec -I spec/support -f JsonOutputFormatter --out #{path}`
-        rspec_output_json = JSON.parse(File.read(path))
+        `bundle exec rspec --order default -I spec/support -f JsonOutputFormatter --out #{path}`
+        rspec_output_json = Oj.load(File.read(path))
         username = ""
         reponame = ""
         sha = ""
@@ -108,7 +109,7 @@ def is_valid_token?(root_url, token)
   res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
     http.request(req)
   end
-  result = JSON.parse(res.body)
+  result = Oj.load(res.body)
   result["success"]
 rescue => e
   return false

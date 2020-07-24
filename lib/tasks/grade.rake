@@ -9,7 +9,7 @@ namespace :grade do
     input_token = ARGV[1]
     file_token = nil
 
-    config_file_name = Rails.root.join("grades.yml")
+    config_file_name = Rails.root.join(".theia/.ltici_apitoken.yml")
     student_config = {}
     student_config["submission_url"] = "https://grades.firstdraft.com"
 
@@ -17,7 +17,7 @@ namespace :grade do
       begin
         config = YAML.load_file(config_file_name)
       rescue
-        abort "It looks like there's something wrong with your token in `/grades.yml`. Please delete that file and try `rails grade:all` again, and be sure to provide the access token for THIS project.".red
+        abort "It looks like there's something wrong with your token in `.theia/.ltici_apitoken.yml`. Please delete that file and try `rails grade` again, and be sure to provide the access token for THIS project.".red
       end
       submission_url = config["submission_url"]
       file_token = config["personal_access_token"]
@@ -25,7 +25,9 @@ namespace :grade do
     else
       submission_url = "https://grades.firstdraft.com"
     end
-
+    if file_token.nil? && ENV.has_key?("LTICI_GITPOD_APITOKEN")
+      input_token = ENV.fetch("LTICI_GITPOD_APITOKEN")
+    end
     if input_token.present?
       token = input_token
       student_config["personal_access_token"] = input_token
@@ -64,9 +66,9 @@ namespace :grade do
         `bin/rails db:migrate RAILS_ENV=test`
         `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
         rspec_output_json = Oj.load(File.read(path))
-        username = ""
-        reponame = ""
-        sha = ""
+        username = `git config user.name`
+        reponame = Rails.root.to_s.split("/").last(2).join("/")
+        sha = `git rev-parse HEAD`.slice(0..7)
 
         GradeRunner::Runner.new(submission_url, token, rspec_output_json, username, reponame, sha, "manual").process
       end

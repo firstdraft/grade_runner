@@ -9,7 +9,8 @@ namespace :grade do
     input_token = ARGV[1]
     file_token = nil
 
-    config_file_name = Rails.root.join(".theia/.ltici_apitoken.yml")
+    config_dir_name = find_or_create_config_dif
+    config_file_name = "#{config_dir_name}/.ltici_apitoken.yml"
     student_config = {}
     student_config["submission_url"] = "https://grades.firstdraft.com"
 
@@ -17,7 +18,7 @@ namespace :grade do
       begin
         config = YAML.load_file(config_file_name)
       rescue
-        abort "It looks like there's something wrong with your token in `.theia/.ltici_apitoken.yml`. Please delete that file and try `rails grade` again, and be sure to provide the access token for THIS project.".red
+        abort "It looks like there's something wrong with your token in `#{config_dir_name}/.ltici_apitoken.yml`. Please delete that file and try `rails grade` again, and be sure to provide the access token for THIS project.".red
       end
       submission_url = config["submission_url"]
       file_token = config["personal_access_token"]
@@ -93,6 +94,12 @@ end
 
 def update_config_file(config_file_name, config)
   File.write(config_file_name, YAML.dump(config))
+end
+
+def find_or_create_config_dif
+  config_dir_name = Rails.root.join(".vscode")
+  Dir.mkdir(config_dir_name) unless Dir.exist?(config_dir_name)
+  config_dir_name
 end
 
 def is_valid_token?(root_url, token)

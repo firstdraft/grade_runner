@@ -1,3 +1,6 @@
+require "json"
+require "open-uri"
+
 desc "Alias for \"grade:next\"."
 task grade: "grade:all" do
 end
@@ -8,6 +11,8 @@ namespace :grade do
     ARGV.each { |a| task a.to_sym do ; end }
     input_token = ARGV[1]
     file_token = nil
+
+    sync_specs_with_source
 
     config_dir_name = find_or_create_config_dif
     config_file_name = "#{config_dir_name}/.ltici_apitoken.yml"
@@ -90,6 +95,40 @@ namespace :grade do
     end
   end
 
+end
+
+def sync_specs_with_source
+  base_url = "https://api.github.com/repos/"
+  reponame = Dir.pwd.split("/").last
+  url_for_spec_folder = base_url + "appdev-projects/#{reponame}/contents/spec"
+  spec_folder_json = URI.open(url_for_spec_folder).read
+  spec_folder_contents = JSON.parse(spec_folder_json)
+
+  spec_subfolder_name = spec_folder_contents.first.fetch("name")
+  base_spec_url = url_for_spec_folder + "/#{spec_subfolder_name}"
+  spec_files_json = URI.open(base_spec_url).read
+  spec_file_names = JSON.parse(spec_files_json)
+
+  uncommitted_changes = `git status -suno`
+  names = spec_file_names.map { |file| file.fetch("name") }
+  names.each_with_index do |filename, index|
+    remote_spec_file_sha = spec_file_names[index]["sha"]
+    has_uncommitted_changes = uncommitted_changes.split("\n").any? do |item|
+      item.include?(filename)
+    end
+    local_spec_file = "spec/#{spec_subfolder_name}/#{filename}"
+    local_spec_file_sha = `git ls-files -s #{local_spec_file}`.split[1]
+    if has_uncommitted_changes || (local_spec_file_sha != remote_spec_file_sha)
+      puts "Syncing spec #{index} of #{names.length} with upstream..."
+      download_url = spec_file_names[index]["download_url"]
+      local_spec_file = File.open(local_spec_file, File::RDWR)
+
+      new_content = URI.open(download_url).read
+      File.open(local_spec_file, "w") { |file| file << new_content }
+    else
+      puts "Specs are up to date"
+    end
+  end
 end
 
 def update_config_file(config_file_name, config)

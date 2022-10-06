@@ -1,5 +1,5 @@
-require "json"
 require "open-uri"
+require "octokit"
 
 desc "Alias for \"grade:next\"."
 task grade: "grade:all" do
@@ -98,37 +98,48 @@ namespace :grade do
 end
 
 def sync_specs_with_source
-  base_url = "https://api.github.com/repos/"
   reponame = Dir.pwd.split("/").last
-  url_for_spec_folder = base_url + "appdev-projects/#{reponame}/contents/spec"
-  spec_folder_json = URI.open(url_for_spec_folder).read
-  spec_folder_contents = JSON.parse(spec_folder_json)
+  full_reponame = "appdev-projects/#{reponame}"
+  spec_folder_contents = Octokit.contents(full_reponame, :path => 'spec')
 
-  spec_subfolder_name = spec_folder_contents.first.fetch("name")
-  base_spec_url = url_for_spec_folder + "/#{spec_subfolder_name}"
-  spec_files_json = URI.open(base_spec_url).read
-  spec_file_names = JSON.parse(spec_files_json)
-
-  uncommitted_changes = `git status -suno`
-  names = spec_file_names.map { |file| file.fetch("name") }
-  names.each_with_index do |filename, index|
-    remote_spec_file_sha = spec_file_names[index]["sha"]
-    has_uncommitted_changes = uncommitted_changes.split("\n").any? do |item|
-      item.include?(filename)
-    end
-    local_spec_file = "spec/#{spec_subfolder_name}/#{filename}"
-    local_spec_file_sha = `git ls-files -s #{local_spec_file}`.split[1]
-    if has_uncommitted_changes || (local_spec_file_sha != remote_spec_file_sha)
-      puts "Syncing spec #{index} of #{names.length} with upstream..."
-      download_url = spec_file_names[index]["download_url"]
-      local_spec_file = File.open(local_spec_file, File::RDWR)
-
-      new_content = URI.open(download_url).read
-      File.open(local_spec_file, "w") { |file| file << new_content }
-    else
-      puts "Specs are up to date"
-    end
+  spec_subfolder_name = spec_folder_contents.first[:name]
+  remote_sha = spec_folder_contents.first[:sha]
+  full_spec_path = "spec/#{spec_subfolder_name}"
+  spec_files = Octokit.contents(full_reponame, :path => full_spec_path)
+  tmp_branch_name = "rails-grade-tmp"
+  `git checkout -b #{tmp_branch_name} -q`
+  `git commit #{Rails.root.join(full_spec_path)} -m "tmp"`
+  local_sha = `git ls-tree HEAD #{Rails.root.join(full_spec_path)}`.chomp.split[2]
+  number_of_commits = `git rev-list --count HEAD`.to_i
+  git_args = ""
+  if number_of_commits > 1
+    git_args = "--soft HEAD~1 && git reset"
   end
+  `git reset #{git_args}`
+  `git checkout - -q`
+  `git branch -D #{tmp_branch_name}`
+
+  unless remote_sha == local_sha
+    files = spec_files.map do |file|
+      {
+        name: "spec/#{spec_subfolder_name}/#{file[:name]}",
+        download_url: file[:download_url]
+      }
+    end
+    overwrite_spec_files(files)
+  end
+end
+
+def overwrite_spec_files(files)
+  print "Syncing specs with upstream..."
+  files.each_with_index do |file, index|
+    filename = file[:name]
+    print "#{index + 1}..."
+    download_url = file[:download_url]
+    new_content = URI.open(download_url).read
+    File.open(filename, "w") { |file| file << new_content }
+  end
+  puts "complete."
 end
 
 def update_config_file(config_file_name, config)

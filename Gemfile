@@ -2,7 +2,9 @@ source "https://rubygems.org"
 # Add dependencies required to use your gem here.
 # Example:
 #   gem "activesupport", ">= 2.3.5"
-gem "oj"
+gem "oj", "~> 3.10.6"
+gem "octokit", "~> 5.0"
+gem "faraday-retry", "~> 1.0.3"
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.
 group :development do

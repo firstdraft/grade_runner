@@ -22,7 +22,6 @@ module GradeRunner
     private
 
     def post_to_grades
-      puts "- Posting to URL: " + "#{@submission_url}"
       uri = URI.parse(@submission_url)
       req = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
       req.body = data.to_json

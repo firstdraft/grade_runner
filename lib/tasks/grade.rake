@@ -101,25 +101,16 @@ def sync_specs_with_source
   reponame = Dir.pwd.split("/").last
   full_reponame = "appdev-projects/#{reponame}"
   spec_folder_contents = Octokit.contents(full_reponame, :path => 'spec')
-
   spec_subfolder_name = spec_folder_contents.first[:name]
+
   remote_sha = spec_folder_contents.first[:sha]
   full_spec_path = "spec/#{spec_subfolder_name}"
-  spec_files = Octokit.contents(full_reponame, :path => full_spec_path)
-  tmp_branch_name = "rails-grade-tmp"
-  `git checkout -b #{tmp_branch_name} -q`
-  `git commit #{Rails.root.join(full_spec_path)} -m "tmp"`
+  # Discard unstaged changes in spec folder
+  `git checkout #{full_spec_path} -q`
   local_sha = `git ls-tree HEAD #{Rails.root.join(full_spec_path)}`.chomp.split[2]
-  number_of_commits = `git rev-list --count HEAD`.to_i
-  git_args = ""
-  if number_of_commits > 1
-    git_args = "--soft HEAD~1 && git reset"
-  end
-  `git reset #{git_args}`
-  `git checkout - -q`
-  `git branch -D #{tmp_branch_name}`
-
+  
   unless remote_sha == local_sha
+    spec_files = Octokit.contents(full_reponame, :path => full_spec_path)
     files = spec_files.map do |file|
       {
         name: "spec/#{spec_subfolder_name}/#{file[:name]}",

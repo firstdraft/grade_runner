@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.authors = ["Raghu Betina".freeze, "Jelani Woods".freeze]
   s.date = "2022-10-06"
   s.description = "This gem runs your RSpec test suite and posts the JSON output to grades.firstdraft.com.".freeze
-  s.email = ["raghu@firstdraft.com".freeze, , "jelani@firstdraft.com".freeze]
+  s.email = ["raghu@firstdraft.com".freeze, "jelani@firstdraft.com".freeze]
   s.extra_rdoc_files = [
     "LICENSE.txt",
     "README.markdown"

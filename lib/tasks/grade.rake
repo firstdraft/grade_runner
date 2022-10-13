@@ -98,23 +98,23 @@ namespace :grade do
 end
 
 def sync_specs_with_source
-  puts reponame = `basename -s .git \`git config --get remote.origin.url\``.chomp
+  reponame = `basename -s .git \`git config --get remote.origin.url\``.chomp
   full_reponame = "appdev-projects/#{reponame}"
 
   repo_contents = Octokit.contents(full_reponame)
-  remote_spec_folder = repo_contents.find { |git_object| git_object[:name] == "spec" }
+  remote_spec_folder = repo_contents.find { |git_object| git_object[:name] == 'spec' }
   remote_sha = remote_spec_folder[:sha]
-  puts "remote sha: #{remote_sha}"
   # Discard unstaged changes in spec folder
-  `git checkout #{full_spec_path} -q`
-  local_sha = `git ls-tree HEAD #{Rails.root.join("spec")}`.chomp.split[2]
-  puts "local sha: #{local_sha}"
-  
+  `git checkout spec -q`
+  `git clean spec -f -q`
+  local_sha = `git ls-tree HEAD #{Rails.root.join('spec')}`.chomp.split[2]
+
   unless remote_sha == local_sha
-    puts "not the same"
     `git fetch upstream`
+    # Remove local contents of spec folder
+    `rm -rf spec/*`
     default_branch = `git remote show upstream | grep 'HEAD branch' | cut -d' ' -f5`.chomp
-    puts "default branch on remote: #{default_branch}"
+    # Overwrite local contents of spec folder with contents from upstream branch
     `git checkout upstream/#{default_branch} spec/ -q`
   end
 end

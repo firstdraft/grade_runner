@@ -10,10 +10,10 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
-  s.authors = ["Raghu Betina".freeze]
+  s.authors = ["Raghu Betina".freeze, "Jelani Woods".freeze]
   s.date = "2022-10-06"
   s.description = "This gem runs your RSpec test suite and posts the JSON output to grades.firstdraft.com.".freeze
-  s.email = "raghu@firstdraft.com".freeze
+  s.email = ["raghu@firstdraft.com".freeze, , "jelani@firstdraft.com".freeze]
   s.extra_rdoc_files = [
     "LICENSE.txt",
     "README.markdown"

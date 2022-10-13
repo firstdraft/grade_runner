@@ -106,7 +106,7 @@ def sync_specs_with_source
   remote_sha = remote_spec_folder[:sha]
   puts "remote sha: #{remote_sha}"
   # Discard unstaged changes in spec folder
-  `git checkout #{full_spec_path} -q`
+  `git checkout spec -q`
   local_sha = `git ls-tree HEAD #{Rails.root.join("spec")}`.chomp.split[2]
   puts "local sha: #{local_sha}"
   

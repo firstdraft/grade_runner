@@ -107,12 +107,15 @@ def sync_specs_with_source
   puts "remote sha: #{remote_sha}"
   # Discard unstaged changes in spec folder
   `git checkout spec -q`
+  `git clean spec -q`
   local_sha = `git ls-tree HEAD #{Rails.root.join("spec")}`.chomp.split[2]
   puts "local sha: #{local_sha}"
   
   unless remote_sha == local_sha
     puts "not the same"
     `git fetch upstream`
+    # Remove local contents of spec folder
+    `rm -rf spec/*`
     default_branch = `git remote show upstream | grep 'HEAD branch' | cut -d' ' -f5`.chomp
     puts "default branch on remote: #{default_branch}"
     `git checkout upstream/#{default_branch} spec/ -q`

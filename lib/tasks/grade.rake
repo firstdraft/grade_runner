@@ -98,39 +98,25 @@ namespace :grade do
 end
 
 def sync_specs_with_source
-  reponame = Dir.pwd.split("/").last
+  puts reponame = `basename -s .git \`git config --get remote.origin.url\``.chomp
   full_reponame = "appdev-projects/#{reponame}"
-  spec_folder_contents = Octokit.contents(full_reponame, :path => 'spec')
-  spec_subfolder_name = spec_folder_contents.first[:name]
 
-  remote_sha = spec_folder_contents.first[:sha]
-  full_spec_path = "spec/#{spec_subfolder_name}"
+  repo_contents = Octokit.contents(full_reponame)
+  remote_spec_folder = repo_contents.find { |git_object| git_object[:name] == "spec" }
+  remote_sha = remote_spec_folder[:sha]
+  puts "remote sha: #{remote_sha}"
   # Discard unstaged changes in spec folder
   `git checkout #{full_spec_path} -q`
-  local_sha = `git ls-tree HEAD #{Rails.root.join(full_spec_path)}`.chomp.split[2]
+  local_sha = `git ls-tree HEAD #{Rails.root.join("spec")}`.chomp.split[2]
+  puts "local sha: #{local_sha}"
   
   unless remote_sha == local_sha
-    spec_files = Octokit.contents(full_reponame, :path => full_spec_path)
-    files = spec_files.map do |file|
-      {
-        name: "spec/#{spec_subfolder_name}/#{file[:name]}",
-        download_url: file[:download_url]
-      }
-    end
-    overwrite_spec_files(files)
+    puts "not the same"
+    `git fetch upstream`
+    default_branch = `git remote show upstream | grep 'HEAD branch' | cut -d' ' -f5`.chomp
+    puts "default branch on remote: #{default_branch}"
+    `git checkout upstream/#{default_branch} spec/ -q`
   end
-end
-
-def overwrite_spec_files(files)
-  print "Syncing specs with upstream..."
-  files.each_with_index do |file, index|
-    filename = file[:name]
-    print "#{index + 1}..."
-    download_url = file[:download_url]
-    new_content = URI.open(download_url).read
-    File.open(filename, "w") { |file| file << new_content }
-  end
-  puts "complete."
 end
 
 def update_config_file(config_file_name, config)

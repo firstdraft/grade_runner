@@ -1,3 +1,6 @@
+require "open-uri"
+require "octokit"
+
 desc "Alias for \"grade:next\"."
 task grade: "grade:all" do
 end
@@ -8,6 +11,8 @@ namespace :grade do
     ARGV.each { |a| task a.to_sym do ; end }
     input_token = ARGV[1]
     file_token = nil
+
+    sync_specs_with_source
 
     config_dir_name = find_or_create_config_dif
     config_file_name = "#{config_dir_name}/.ltici_apitoken.yml"
@@ -90,6 +95,28 @@ namespace :grade do
     end
   end
 
+end
+
+def sync_specs_with_source
+  reponame = `basename -s .git \`git config --get remote.origin.url\``.chomp
+  full_reponame = "appdev-projects/#{reponame}"
+
+  repo_contents = Octokit.contents(full_reponame)
+  remote_spec_folder = repo_contents.find { |git_object| git_object[:name] == 'spec' }
+  remote_sha = remote_spec_folder[:sha]
+  # Discard unstaged changes in spec folder
+  `git checkout spec -q`
+  `git clean spec -f -q`
+  local_sha = `git ls-tree HEAD #{Rails.root.join('spec')}`.chomp.split[2]
+
+  unless remote_sha == local_sha
+    `git fetch upstream`
+    # Remove local contents of spec folder
+    `rm -rf spec/*`
+    default_branch = `git remote show upstream | grep 'HEAD branch' | cut -d' ' -f5`.chomp
+    # Overwrite local contents of spec folder with contents from upstream branch
+    `git checkout upstream/#{default_branch} spec/ -q`
+  end
 end
 
 def update_config_file(config_file_name, config)

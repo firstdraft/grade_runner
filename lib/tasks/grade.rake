@@ -95,6 +95,35 @@ namespace :grade do
     end
   end
 
+  desc "Reset access token saved in YAML file."
+  task :reset_token do
+    config_dir_name = find_or_create_config_dif
+    config_file_name = "#{config_dir_name}/.ltici_apitoken.yml"
+    submission_url = "https://grades.firstdraft.com"
+
+    student_config = {}
+    student_config["submission_url"] = submission_url
+    puts "Enter your access token for this project"
+    new_personal_access_token = ""
+
+    while new_personal_access_token == "" do
+      print "> "
+      new_personal_access_token = $stdin.gets.chomp.strip
+      token_valid = is_valid_token?(submission_url, new_personal_access_token)
+      unless token_valid && !new_personal_access_token.empty?
+        puts "Please enter valid token"
+        new_personal_access_token = ""
+      end
+
+      unless new_personal_access_token.empty?
+        student_config["personal_access_token"] = new_personal_access_token
+        update_config_file(config_file_name, student_config)
+        token = new_personal_access_token
+      end
+    end
+    puts "Grade token has been reset successfully."
+  end
+
 end
 
 def sync_specs_with_source

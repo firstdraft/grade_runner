@@ -18,8 +18,8 @@ Juwelier::Tasks.new do |gem|
   gem.license = "MIT"
   gem.summary = %Q{A Ruby client for [firstdraft Grades](https://grades.firstdraft.com)}
   gem.description = %Q{This gem runs your RSpec test suite and posts the JSON output to grades.firstdraft.com.}
-  gem.email = "raghu@firstdraft.com"
-  gem.authors = ["Raghu Betina"]
+  gem.email = ["raghu@firstdraft.com", "jelani@firstdraft.com"]
+  gem.authors = ["Raghu Betina", "Jelani Woods"]
 
   # dependencies defined in Gemfile
 end

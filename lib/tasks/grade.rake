@@ -1,5 +1,6 @@
 require "open-uri"
 require "octokit"
+require "active_support/core_ext/object/blank"
 
 desc "Alias for \"grade:next\"."
 task grade: "grade:all" do

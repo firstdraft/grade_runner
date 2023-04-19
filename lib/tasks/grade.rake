@@ -1,6 +1,7 @@
-require "open-uri"
-require "octokit"
 require "active_support/core_ext/object/blank"
+require "grade_runner/runner"
+require "octokit"
+require "yaml"
 
 desc "Alias for \"grade:next\"."
 task grade: "grade:all" do
@@ -69,12 +70,13 @@ namespace :grade do
         update_config_file(config_file_name, student_config)
         puts "Your access token looked invalid, so we've reset it to be blank. Please re-run rails grade and, when asked, copy-paste your token carefully from the assignment page."
       else
-        path = Rails.root.join("/tmp/output/#{Time.now.to_i}.json")
-        `bin/rails db:migrate RAILS_ENV=test`
+        path = File.join(project_root, "/tmp/output/#{Time.now.to_i}.json")
+        `bin/rails db:migrate RAILS_ENV=test` if defined?(Rails)
         `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
         rspec_output_json = Oj.load(File.read(path))
-        username = `git config user.name`
-        reponame = Rails.root.to_s.split("/").last(2).join("/")
+        github_email = `git config user.email`.chomp
+        username = github_username(github_email)
+        reponame = project_root.to_s.split("/").last
         sha = `git rev-parse HEAD`.slice(0..7)
 
         GradeRunner::Runner.new(submission_url, token, rspec_output_json, username, reponame, sha, "manual").process
@@ -86,9 +88,9 @@ namespace :grade do
 
   desc "Run only the next failing test."
   task :next do
-    path = Rails.root.join("examples.txt")
+    path = File.join(project_root, "examples.txt")
     if File.exist?(path)
-      `bin/rails db:migrate RAILS_ENV=test`
+      `bin/rails db:migrate RAILS_ENV=test` if defined?(Rails)
       puts `RAILS_ENV=test bundle exec rspec --next-failure --format HintFormatter`
     else
       puts `RAILS_ENV=test bundle exec rspec`
@@ -137,7 +139,7 @@ def sync_specs_with_source
   # Discard unstaged changes in spec folder
   `git checkout spec -q`
   `git clean spec -f -q`
-  local_sha = `git ls-tree HEAD #{Rails.root.join('spec')}`.chomp.split[2]
+  local_sha = `git ls-tree HEAD #{project_root.join('spec')}`.chomp.split[2]
 
   unless remote_sha == local_sha
     `git fetch upstream`
@@ -154,7 +156,7 @@ def update_config_file(config_file_name, config)
 end
 
 def find_or_create_config_dif
-  config_dir_name = Rails.root.join(".vscode")
+  config_dir_name = File.join(project_root, ".vscode")
   Dir.mkdir(config_dir_name) unless Dir.exist?(config_dir_name)
   config_dir_name
 end
@@ -171,4 +173,24 @@ def is_valid_token?(root_url, token)
   result["success"]
 rescue => e
   return false
+end
+
+def github_username(primary_email)
+  username = `git config user.name`.chomp
+  search_results = Octokit.search_users("#{primary_email} in:email").fetch(:items)
+  if search_results.present?
+    username = search_results.first.fetch(:login, username)
+  end
+  username
+end
+
+def project_root
+  if defined?(Rails)
+    return Rails.root
+  end
+
+  if defined?(Bundler)
+    return Bundler.root
+  end
+  Dir.pwd
 end

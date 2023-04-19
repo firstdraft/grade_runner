@@ -160,6 +160,7 @@ DEPENDENCIES
   pry-remote (~> 0)
   pry-rescue (~> 1)
   pry-stack_explorer (~> 0)
+  rake (~> 13)
   rdoc (~> 3.12)
   rspec (~> 3.5.0)
   simplecov

@@ -8,7 +8,7 @@ A Ruby client for [firstdraft Grades](https://grades.firstdraft.com)
 Add this line to your application's Gemfile:
 
 ```ruby
-gem "grade_runner", git: "https://github.com/firstdraft/grade_runner"
+gem "grade_runner", github: "firstdraft/grade_runner"
 ```
 
 And then execute:

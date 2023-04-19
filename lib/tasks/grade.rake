@@ -133,21 +133,28 @@ def sync_specs_with_source
   reponame = `basename -s .git \`git config --get remote.origin.url\``.chomp
   full_reponame = "appdev-projects/#{reponame}"
 
-  repo_contents = Octokit.contents(full_reponame)
-  remote_spec_folder = repo_contents.find { |git_object| git_object[:name] == 'spec' }
-  remote_sha = remote_spec_folder[:sha]
-  # Discard unstaged changes in spec folder
-  `git checkout spec -q`
-  `git clean spec -f -q`
-  local_sha = `git ls-tree HEAD #{project_root.join('spec')}`.chomp.split[2]
+  if Octokit.repository?(full_reponame)
+    repo_contents = Octokit.contents(full_reponame)
+    remote_spec_folder = repo_contents.find { |git_object| git_object[:name] == 'spec' }
+    if remote_spec_folder.blank?
+      abort("The project #{full_reponame} does not have specs.")
+    end
+    remote_sha = remote_spec_folder[:sha]
+    # Discard unstaged changes in spec folder
+    `git checkout spec -q`
+    `git clean spec -f -q`
+    local_sha = `git ls-tree HEAD #{project_root.join('spec')}`.chomp.split[2]
 
-  unless remote_sha == local_sha
-    `git fetch upstream`
-    # Remove local contents of spec folder
-    `rm -rf spec/*`
-    default_branch = `git remote show upstream | grep 'HEAD branch' | cut -d' ' -f5`.chomp
-    # Overwrite local contents of spec folder with contents from upstream branch
-    `git checkout upstream/#{default_branch} spec/ -q`
+    unless remote_sha == local_sha
+      `git fetch upstream`
+      # Remove local contents of spec folder
+      `rm -rf spec/*`
+      default_branch = `git remote show upstream | grep 'HEAD branch' | cut -d' ' -f5`.chomp
+      # Overwrite local contents of spec folder with contents from upstream branch
+      `git checkout upstream/#{default_branch} spec/ -q`
+    end
+  else
+    abort("The project #{full_reponame} does not exist.")
   end
 end
 

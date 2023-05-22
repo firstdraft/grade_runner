@@ -14,8 +14,6 @@ namespace :grade do
     input_token = ARGV[1]
     file_token = nil
 
-    sync_specs_with_source
-
     config_dir_name = find_or_create_config_dif
     config_file_name = "#{config_dir_name}/.ltici_apitoken.yml"
     student_config = {}
@@ -70,6 +68,9 @@ namespace :grade do
         update_config_file(config_file_name, student_config)
         puts "Your access token looked invalid, so we've reset it to be blank. Please re-run rails grade and, when asked, copy-paste your token carefully from the assignment page."
       else
+        full_reponame = upstream_repo(submission_url, token)
+        sync_specs_with_source(full_reponame)
+
         path = File.join(project_root, "/tmp/output/#{Time.now.to_i}.json")
         `bin/rails db:migrate RAILS_ENV=test` if defined?(Rails)
         `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
@@ -129,10 +130,11 @@ namespace :grade do
 
 end
 
-def sync_specs_with_source
-  reponame = `basename -s .git \`git config --get remote.origin.url\``.chomp
-  full_reponame = "appdev-projects/#{reponame}"
-
+def sync_specs_with_source(full_reponame)
+  # reponame = `basename -s .git \`git config --get remote.origin.url\``.chomp
+  # full_reponame = "appdev-projects/#{reponame}"
+  # root_url = "https://grades.firstdraft.com"
+  
   if Octokit.repository?(full_reponame)
     repo_contents = Octokit.contents(full_reponame)
     remote_spec_folder = repo_contents.find { |git_object| git_object[:name] == 'spec' }
@@ -178,6 +180,20 @@ def is_valid_token?(root_url, token)
   end
   result = Oj.load(res.body)
   result["success"]
+rescue => e
+  return false
+end
+
+def upstream_repo?(root_url, token)
+  return false unless token.is_a?(String) && token =~ /^[1-9A-Za-z][^OIl]{23}$/
+  url = "#{root_url}/submissions/resource?token=#{token}"
+  uri = URI.parse(url)
+  req = Net::HTTP::Get.new(uri, 'Content-Type' => 'application/json')
+  res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+    http.request(req)
+  end
+  result = Oj.load(res.body)
+  result["repo_owner"] + "/" + result["repo_name"]
 rescue => e
   return false
 end

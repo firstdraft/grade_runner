@@ -69,6 +69,7 @@ namespace :grade do
         puts "Your access token looked invalid, so we've reset it to be blank. Please re-run rails grade and, when asked, copy-paste your token carefully from the assignment page."
       else
         full_reponame = upstream_repo(submission_url, token)
+        set_upstream_remote(full_reponame)
         sync_specs_with_source(full_reponame)
 
         path = File.join(project_root, "/tmp/output/#{Time.now.to_i}.json")
@@ -131,10 +132,6 @@ namespace :grade do
 end
 
 def sync_specs_with_source(full_reponame)
-  # reponame = `basename -s .git \`git config --get remote.origin.url\``.chomp
-  # full_reponame = "appdev-projects/#{reponame}"
-  # root_url = "https://grades.firstdraft.com"
-  
   if Octokit.repository?(full_reponame)
     repo_contents = Octokit.contents(full_reponame)
     remote_spec_folder = repo_contents.find { |git_object| git_object[:name] == 'spec' }
@@ -148,7 +145,7 @@ def sync_specs_with_source(full_reponame)
     local_sha = `git ls-tree HEAD #{project_root.join('spec')}`.chomp.split[2]
 
     unless remote_sha == local_sha
-      `git fetch upstream`
+      `git fetch upstream -q`
       # Remove local contents of spec folder
       `rm -rf spec/*`
       default_branch = `git remote show upstream | grep 'HEAD branch' | cut -d' ' -f5`.chomp
@@ -157,6 +154,15 @@ def sync_specs_with_source(full_reponame)
     end
   else
     abort("The project #{full_reponame} does not exist.")
+  end
+end
+
+def set_upstream_remote(repo_slug)
+  upstream = `git remote -v | grep -w upstream`.chomp
+  if upstream.blank?
+    `git remote add upstream https://github.com/#{repo_slug}`
+  else
+    `git remote set-url upstream https://github.com/#{repo_slug}`
   end
 end
 
@@ -184,7 +190,7 @@ rescue => e
   return false
 end
 
-def upstream_repo?(root_url, token)
+def upstream_repo(root_url, token)
   return false unless token.is_a?(String) && token =~ /^[1-9A-Za-z][^OIl]{23}$/
   url = "#{root_url}/submissions/resource?token=#{token}"
   uri = URI.parse(url)
@@ -193,7 +199,7 @@ def upstream_repo?(root_url, token)
     http.request(req)
   end
   result = Oj.load(res.body)
-  result["repo_owner"] + "/" + result["repo_name"]
+  result["repo_slug"]
 rescue => e
   return false
 end

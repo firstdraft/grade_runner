@@ -205,6 +205,7 @@ rescue => e
 end
 
 def github_username(primary_email)
+  return "" if primary_email.blank?
   username = `git config user.name`.chomp
   search_results = Octokit.search_users("#{primary_email} in:email").fetch(:items)
   if search_results.present?

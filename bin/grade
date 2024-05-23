@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+command = ARGV[0]
+
+case command
+when "grade"
+  system("rake grade")
+when "grade:reset_token"
+  system("rake grade:reset_token")
+end

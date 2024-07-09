@@ -151,6 +151,11 @@ def sync_specs_with_source(full_reponame)
       default_branch = `git remote show upstream | grep 'HEAD branch' | cut -d' ' -f5`.chomp
       # Overwrite local contents of spec folder with contents from upstream branch
       `git checkout upstream/#{default_branch} spec/ -q`
+      # Unstage new spec file contents
+      # - if wrong token is used, spec files can be removed properly when unstaged
+      # - spec file changes committed by learner are removed and updated
+      # - we are not committing spec file changes by default to avoid confusing the git history
+      `git restore --staged spec/*`
     end
   else
     abort("The project #{full_reponame} does not exist.")

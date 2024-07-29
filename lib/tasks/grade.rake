@@ -74,7 +74,7 @@ namespace :grade do
 
         path = File.join(project_root, "/tmp/output/#{Time.now.to_i}.json")
         `bin/rails db:migrate RAILS_ENV=test` if defined?(Rails)
-        `RAILS_ENV=test bundle exec rspec --order default --format JsonOutputFormatter --out #{path}`
+        `RAILS_ENV=test bundle exec rspec --format JsonOutputFormatter --out #{path}`
         rspec_output_json = Oj.load(File.read(path))
         github_email = `git config user.email`.chomp
         username = github_username(github_email)

@@ -2,7 +2,6 @@ require "active_support/core_ext/object/blank"
 require "grade_runner/runner"
 require "octokit"
 require "yaml"
- require "http"
  require "zip"
 
 desc "Alias for \"grade:next\"."

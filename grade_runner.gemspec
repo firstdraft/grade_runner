@@ -45,7 +45,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency(%q<activesupport>.freeze, [">= 2.3.5".freeze])
   s.add_runtime_dependency(%q<oj>.freeze, ["~> 3.13.12".freeze])
   s.add_runtime_dependency(%q<octokit>.freeze, ["~> 5.0".freeze])
-  s.add_runtime_dependency(%q<http>.freeze, [">= 0".freeze])
   s.add_runtime_dependency(%q<zip>.freeze, [">= 0".freeze])
   s.add_runtime_dependency(%q<faraday-retry>.freeze, ["~> 1.0.3".freeze])
   s.add_runtime_dependency(%q<rake>.freeze, ["~> 13".freeze])

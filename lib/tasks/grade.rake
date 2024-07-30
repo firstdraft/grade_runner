@@ -16,7 +16,7 @@ namespace :grade do
     input_token = ARGV[1]
     file_token = nil
 
-    config_dir_name = find_or_create_config_dif
+    config_dir_name = find_or_create_directory(".vscode")
     config_file_name = "#{config_dir_name}/.ltici_apitoken.yml"
     student_config = {}
     student_config["submission_url"] = "https://2fe2-149-75-206-231.ngrok-free.app"
@@ -105,7 +105,7 @@ namespace :grade do
 
   desc "Reset access token saved in YAML file."
   task :reset_token do
-    config_dir_name = find_or_create_config_dif
+    config_dir_name = find_or_create_directory(".vscode")
     config_file_name = "#{config_dir_name}/.ltici_apitoken.yml"
     submission_url = "https://2fe2-149-75-206-231.ngrok-free.app"
 
@@ -139,31 +139,24 @@ def sync_specs_with_source(full_reponame, remote_sha, specs_url)
   `git checkout spec -q`
   `git clean spec -f -q`
   local_sha = `git ls-tree HEAD #{project_root.join('spec')}`.chomp.split[2]
-  # puts "local"
-  # puts local_sha
-  # puts "remote"
-  # puts remote_sha
-  # puts remote_sha == local_sha
 
   unless remote_sha == local_sha
     require "fileutils"
 
     # Define the directory you want to clear
     files_and_subfolders_inside_specs = Dir.glob("spec/*")
-
     # Use FileUtils to remove the contents of the directory
     FileUtils.rm_rf(files_and_subfolders_inside_specs)
-    # puts specs_url
-    Dir.mkdir(project_root.join("tmp")) unless Dir.exist?(project_root.join("tmp"))
+
+    find_or_create_directory("tmp")
     download_file(specs_url, "tmp/spec.zip")
-    extracted_zip_folder = extract_zip("tmp/spec.zip", project_root.join("tmp"))
-    source_directory = project_root.join("tmp/foodhub-master/spec")
-    replace_spec_folder(source_directory)
-    # `rm #{project_root.join("spec.zip")}`
+    extracted_zip_folder = extract_zip("tmp/spec.zip", "tmp")
+    source_directory = extracted_zip_folder.join("spec")
+    overwrite_spec_folder(source_directory)
+
     FileUtils.rm(project_root.join("tmp/spec.zip"))
-    puts "removing #{extracted_zip_folder}"
     FileUtils.rm_rf(extracted_zip_folder)
-    p "done"
+    # TODO commit spec folder changes
     # `git fetch upstream -q`
     # Remove local contents of spec folder
     # `rm -rf spec/*`
@@ -180,50 +173,35 @@ def sync_specs_with_source(full_reponame, remote_sha, specs_url)
 end
 
 def download_file(url, destination)
-  # File.open(destination, "wb") do |file|
-  #   response = HTTP.get(url)
-  #   file.write(response.body)
-  # end
-  # puts "urls:"
-  # puts url
-  # puts "---"
-  # TODO be dynamic
-  # TODO find or create tmp folder and save there
-  url = "https://github.com/appdev-projects/foodhub/archive/refs/heads/master.zip"
-  # puts url
   require "open-uri"
-
+  # TODO fix URL from Grades
+  url = "https://github.com/appdev-projects/foodhub/archive/refs/heads/master.zip"
   download = URI.open(url)
   IO.copy_stream(download, destination)
 end
 
 def extract_zip(folder, destination)
-  puts "extracting..."
-  extracted_filepath = destination
+  extracted_file_path = project_root.join(destination)
   Zip::File.open(folder) do |zip_file|
     zip_file.each_with_index do |file, index|
       # Get name of root folder in zip file
       if index == 0
-        extracted_filepath = extracted_filepath.join(file.name)
+        extracted_file_path = extracted_file_path.join(file.name)
       end
       file_path = File.join(destination, file.name)
       FileUtils.mkdir_p(File.dirname(file_path))
       file.extract(file_path)
     end
   end
-  extracted_filepath
+  extracted_file_path
 end
 
-def replace_spec_folder(source_directory)
-  # source_directory = "tmp2/foodhub-master/spec"
+def overwrite_spec_folder(source_directory)
   destination_directory = "spec"
   # Get all files in the source directory
-  # p "files:"
   files = Dir.glob("#{source_directory}/*")
-  
   # Move each file to the destination directory
   files.each do |file|
-    # puts file
     FileUtils.mv(file, destination_directory)
   end
 end
@@ -241,13 +219,14 @@ def update_config_file(config_file_name, config)
   File.write(config_file_name, YAML.dump(config))
 end
 
-def find_or_create_config_dif
-  config_dir_name = File.join(project_root, ".vscode")
-  Dir.mkdir(config_dir_name) unless Dir.exist?(config_dir_name)
-  config_dir_name
+def find_or_create_directory(directory_name)
+  directory = File.join(project_root, directory_name)
+  Dir.mkdir(directory) unless Dir.exist?(directory)
+  directory
 end
 
 def is_valid_token?(root_url, token)
+  # TODO remove when finished
   puts "checking valid token? #{root_url}"
   return false unless token.is_a?(String) && token =~ /^[1-9A-Za-z][^OIl]{23}$/
   url = "#{root_url}/submissions/validate_token?token=#{token}"
@@ -270,6 +249,7 @@ def upstream_repo(root_url, token)
   res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
     http.request(req)
   end
+  # TODO remove when finished
   p result = Oj.load(res.body)
   result.values_at("repo_slug", "specs_sha", "specs_url")
 rescue => e

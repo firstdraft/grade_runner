@@ -2,7 +2,8 @@ require "active_support/core_ext/object/blank"
 require "grade_runner/runner"
 require "octokit"
 require "yaml"
- require "zip"
+require "zip"
+require "fileutils"
 
 desc "Alias for \"grade:next\"."
 task grade: "grade:all" do
@@ -70,9 +71,9 @@ namespace :grade do
         update_config_file(config_file_name, student_config)
         puts "Your access token looked invalid, so we've reset it to be blank. Please re-run rails grade and, when asked, copy-paste your token carefully from the assignment page."
       else
-        full_reponame, remote_sha, specs_url = upstream_repo(submission_url, token)
+        full_reponame, remote_spec_folder_sha, source_code_url = upstream_repo(submission_url, token)
         set_upstream_remote(full_reponame)
-        sync_specs_with_source(full_reponame, remote_sha, specs_url)
+        sync_specs_with_source(full_reponame, remote_spec_folder_sha, source_code_url)
 
         # path = File.join(project_root, "/tmp/output/#{Time.now.to_i}.json")
         # `bin/rails db:migrate RAILS_ENV=test` if defined?(Rails)
@@ -133,22 +134,20 @@ namespace :grade do
 
 end
 
-def sync_specs_with_source(full_reponame, remote_sha, specs_url)
+def sync_specs_with_source(full_reponame, remote_sha, repo_url)
   # Discard unstaged changes in spec folder
   `git checkout spec -q`
   `git clean spec -f -q`
   local_sha = `git ls-tree HEAD #{project_root.join('spec')}`.chomp.split[2]
 
   unless remote_sha == local_sha
-    require "fileutils"
-
     # Define the directory you want to clear
     files_and_subfolders_inside_specs = Dir.glob("spec/*")
     # Use FileUtils to remove the contents of the directory
     FileUtils.rm_rf(files_and_subfolders_inside_specs)
 
     find_or_create_directory("tmp")
-    download_file(specs_url, "tmp/spec.zip")
+    download_file(repo_url, "tmp/spec.zip")
     extracted_zip_folder = extract_zip("tmp/spec.zip", "tmp")
     source_directory = extracted_zip_folder.join("spec")
     overwrite_spec_folder(source_directory)
@@ -173,8 +172,9 @@ end
 
 def download_file(url, destination)
   require "open-uri"
+  puts url
   # TODO fix URL from Grades
-  url = "https://github.com/appdev-projects/foodhub/archive/refs/heads/master.zip"
+  # url = "https://github.com/appdev-projects/foodhub/archive/refs/heads/master.zip"
   download = URI.open(url)
   IO.copy_stream(download, destination)
 end
@@ -250,7 +250,7 @@ def upstream_repo(root_url, token)
   end
   # TODO remove when finished
   p result = Oj.load(res.body)
-  result.values_at("repo_slug", "specs_sha", "specs_url")
+  result.values_at("repo_slug", "spec_folder_sha", "source_code_url")
 rescue => e
   return false
 end

@@ -4,6 +4,8 @@ source "https://rubygems.org"
 gem "activesupport", ">= 2.3.5"
 gem "oj", "~> 3.13.12"
 gem "octokit", "~> 5.0"
+gem "http"
+gem "zip"
 gem "faraday-retry", "~> 1.0.3"
 gem "rake", "~> 13"
 # Add dependencies to develop your gem here.

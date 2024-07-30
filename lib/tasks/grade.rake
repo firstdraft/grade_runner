@@ -2,6 +2,8 @@ require "active_support/core_ext/object/blank"
 require "grade_runner/runner"
 require "octokit"
 require "yaml"
+ require "http"
+ require "zip"
 
 desc "Alias for \"grade:next\"."
 task grade: "grade:all" do
@@ -17,7 +19,7 @@ namespace :grade do
     config_dir_name = find_or_create_config_dif
     config_file_name = "#{config_dir_name}/.ltici_apitoken.yml"
     student_config = {}
-    student_config["submission_url"] = "https://grades.firstdraft.com"
+    student_config["submission_url"] = "https://2fe2-149-75-206-231.ngrok-free.app"
 
     if File.exist?(config_file_name)
       begin
@@ -29,7 +31,7 @@ namespace :grade do
       file_token = config["personal_access_token"]
       student_config["submission_url"] = config["submission_url"]
     else
-      submission_url = "https://grades.firstdraft.com"
+      submission_url = "https://2fe2-149-75-206-231.ngrok-free.app"
     end
     if file_token.nil? && ENV.has_key?("LTICI_GITPOD_APITOKEN")
       input_token = ENV.fetch("LTICI_GITPOD_APITOKEN")
@@ -47,7 +49,8 @@ namespace :grade do
       while new_personal_access_token == "" do
         print "> "
         new_personal_access_token = $stdin.gets.chomp.strip
-
+        puts "----"
+        puts submission_url
         if new_personal_access_token!= "" && is_valid_token?(submission_url, new_personal_access_token) == false
           puts "Please enter valid token"
           new_personal_access_token = ""
@@ -68,20 +71,20 @@ namespace :grade do
         update_config_file(config_file_name, student_config)
         puts "Your access token looked invalid, so we've reset it to be blank. Please re-run rails grade and, when asked, copy-paste your token carefully from the assignment page."
       else
-        full_reponame = upstream_repo(submission_url, token)
+        full_reponame, remote_sha, specs_url = upstream_repo(submission_url, token)
         set_upstream_remote(full_reponame)
-        sync_specs_with_source(full_reponame)
+        sync_specs_with_source(full_reponame, remote_sha, specs_url)
 
-        path = File.join(project_root, "/tmp/output/#{Time.now.to_i}.json")
-        `bin/rails db:migrate RAILS_ENV=test` if defined?(Rails)
-        `RAILS_ENV=test bundle exec rspec --format JsonOutputFormatter --out #{path}`
-        rspec_output_json = Oj.load(File.read(path))
-        github_email = `git config user.email`.chomp
-        username = github_username(github_email)
-        reponame = project_root.to_s.split("/").last
-        sha = `git rev-parse HEAD`.slice(0..7)
+        # path = File.join(project_root, "/tmp/output/#{Time.now.to_i}.json")
+        # `bin/rails db:migrate RAILS_ENV=test` if defined?(Rails)
+        # `RAILS_ENV=test bundle exec rspec --format JsonOutputFormatter --out #{path}`
+        # rspec_output_json = Oj.load(File.read(path))
+        # github_email = `git config user.email`.chomp
+        # username = github_username(github_email)
+        # reponame = project_root.to_s.split("/").last
+        # sha = `git rev-parse HEAD`.slice(0..7)
 
-        GradeRunner::Runner.new(submission_url, token, rspec_output_json, username, reponame, sha, "manual").process
+        # GradeRunner::Runner.new(submission_url, token, rspec_output_json, username, reponame, sha, "manual").process
       end
     else
       puts "We couldn't find your access token, so we couldn't record your grade. Please click on the assignment link again and run the rails grade ...  command shown there."
@@ -104,7 +107,7 @@ namespace :grade do
   task :reset_token do
     config_dir_name = find_or_create_config_dif
     config_file_name = "#{config_dir_name}/.ltici_apitoken.yml"
-    submission_url = "https://grades.firstdraft.com"
+    submission_url = "https://2fe2-149-75-206-231.ngrok-free.app"
 
     student_config = {}
     student_config["submission_url"] = submission_url
@@ -131,34 +134,97 @@ namespace :grade do
 
 end
 
-def sync_specs_with_source(full_reponame)
-  if Octokit.repository?(full_reponame)
-    repo_contents = Octokit.contents(full_reponame)
-    remote_spec_folder = repo_contents.find { |git_object| git_object[:name] == 'spec' }
-    if remote_spec_folder.blank?
-      abort("The project #{full_reponame} does not have specs.")
-    end
-    remote_sha = remote_spec_folder[:sha]
-    # Discard unstaged changes in spec folder
-    `git checkout spec -q`
-    `git clean spec -f -q`
-    local_sha = `git ls-tree HEAD #{project_root.join('spec')}`.chomp.split[2]
+def sync_specs_with_source(full_reponame, remote_sha, specs_url)
+  # Discard unstaged changes in spec folder
+  `git checkout spec -q`
+  `git clean spec -f -q`
+  local_sha = `git ls-tree HEAD #{project_root.join('spec')}`.chomp.split[2]
+  # puts "local"
+  # puts local_sha
+  # puts "remote"
+  # puts remote_sha
+  # puts remote_sha == local_sha
 
-    unless remote_sha == local_sha
-      `git fetch upstream -q`
-      # Remove local contents of spec folder
-      `rm -rf spec/*`
-      default_branch = `git remote show upstream | grep 'HEAD branch' | cut -d' ' -f5`.chomp
-      # Overwrite local contents of spec folder with contents from upstream branch
-      `git checkout upstream/#{default_branch} spec/ -q`
-      # Unstage new spec file contents
-      # - if wrong token is used, spec files can be removed properly when unstaged
-      # - spec file changes committed by learner are removed and updated
-      # - we are not committing spec file changes by default to avoid confusing the git history
-      `git restore --staged spec/*`
+  unless remote_sha == local_sha
+    require "fileutils"
+
+    # Define the directory you want to clear
+    files_and_subfolders_inside_specs = Dir.glob("spec/*")
+
+    # Use FileUtils to remove the contents of the directory
+    FileUtils.rm_rf(files_and_subfolders_inside_specs)
+    # puts specs_url
+    Dir.mkdir(project_root.join("tmp")) unless Dir.exist?(project_root.join("tmp"))
+    download_file(specs_url, "tmp/spec.zip")
+    extracted_zip_folder = extract_zip("tmp/spec.zip", project_root.join("tmp"))
+    source_directory = project_root.join("tmp/foodhub-master/spec")
+    replace_spec_folder(source_directory)
+    # `rm #{project_root.join("spec.zip")}`
+    FileUtils.rm(project_root.join("tmp/spec.zip"))
+    puts "removing #{extracted_zip_folder}"
+    FileUtils.rm_rf(extracted_zip_folder)
+    p "done"
+    # `git fetch upstream -q`
+    # Remove local contents of spec folder
+    # `rm -rf spec/*`
+    # default_branch = `git remote show upstream | grep 'HEAD branch' | cut -d' ' -f5`.chomp
+    # Overwrite local contents of spec folder with contents from upstream branch
+    # `git checkout upstream/#{default_branch} spec/ -q`
+    # Unstage new spec file contents
+    # - if wrong token is used, spec files can be removed properly when unstaged
+    # - spec file changes committed by learner are removed and updated
+    # - we are not committing spec file changes by default to avoid confusing the git history
+    # `git restore --staged spec/*`
+    # TODO, I think we *need* to commit changes to spec folder in order for specs/ sha to match remote
+  end
+end
+
+def download_file(url, destination)
+  # File.open(destination, "wb") do |file|
+  #   response = HTTP.get(url)
+  #   file.write(response.body)
+  # end
+  # puts "urls:"
+  # puts url
+  # puts "---"
+  # TODO be dynamic
+  # TODO find or create tmp folder and save there
+  url = "https://github.com/appdev-projects/foodhub/archive/refs/heads/master.zip"
+  # puts url
+  require "open-uri"
+
+  download = URI.open(url)
+  IO.copy_stream(download, destination)
+end
+
+def extract_zip(folder, destination)
+  puts "extracting..."
+  extracted_filepath = destination
+  Zip::File.open(folder) do |zip_file|
+    zip_file.each_with_index do |file, index|
+      # Get name of root folder in zip file
+      if index == 0
+        extracted_filepath = extracted_filepath.join(file.name)
+      end
+      file_path = File.join(destination, file.name)
+      FileUtils.mkdir_p(File.dirname(file_path))
+      file.extract(file_path)
     end
-  else
-    abort("The project #{full_reponame} does not exist.")
+  end
+  extracted_filepath
+end
+
+def replace_spec_folder(source_directory)
+  # source_directory = "tmp2/foodhub-master/spec"
+  destination_directory = "spec"
+  # Get all files in the source directory
+  # p "files:"
+  files = Dir.glob("#{source_directory}/*")
+  
+  # Move each file to the destination directory
+  files.each do |file|
+    # puts file
+    FileUtils.mv(file, destination_directory)
   end
 end
 
@@ -182,6 +248,7 @@ def find_or_create_config_dif
 end
 
 def is_valid_token?(root_url, token)
+  puts "checking valid token? #{root_url}"
   return false unless token.is_a?(String) && token =~ /^[1-9A-Za-z][^OIl]{23}$/
   url = "#{root_url}/submissions/validate_token?token=#{token}"
   uri = URI.parse(url)
@@ -203,8 +270,8 @@ def upstream_repo(root_url, token)
   res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
     http.request(req)
   end
-  result = Oj.load(res.body)
-  result["repo_slug"]
+  p result = Oj.load(res.body)
+  result.values_at("repo_slug", "specs_sha", "specs_url")
 rescue => e
   return false
 end

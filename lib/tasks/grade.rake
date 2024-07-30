@@ -4,6 +4,7 @@ require "octokit"
 require "yaml"
 require "zip"
 require "fileutils"
+require "open-uri"
 
 desc "Alias for \"grade:next\"."
 task grade: "grade:all" do
@@ -154,27 +155,12 @@ def sync_specs_with_source(full_reponame, remote_sha, repo_url)
 
     FileUtils.rm(project_root.join("tmp/spec.zip"))
     FileUtils.rm_rf(extracted_zip_folder)
-    # TODO commit spec folder changes
-    # `git fetch upstream -q`
-    # Remove local contents of spec folder
-    # `rm -rf spec/*`
-    # default_branch = `git remote show upstream | grep 'HEAD branch' | cut -d' ' -f5`.chomp
-    # Overwrite local contents of spec folder with contents from upstream branch
-    # `git checkout upstream/#{default_branch} spec/ -q`
-    # Unstage new spec file contents
-    # - if wrong token is used, spec files can be removed properly when unstaged
-    # - spec file changes committed by learner are removed and updated
-    # - we are not committing spec file changes by default to avoid confusing the git history
-    # `git restore --staged spec/*`
-    # TODO, I think we *need* to commit changes to spec folder in order for specs/ sha to match remote
+    `git add spec/`
+    `git commit spec/ -m "Update project tests" --author "First Draft <grades@firstdraft.com>"`
   end
 end
 
 def download_file(url, destination)
-  require "open-uri"
-  puts url
-  # TODO fix URL from Grades
-  # url = "https://github.com/appdev-projects/foodhub/archive/refs/heads/master.zip"
   download = URI.open(url)
   IO.copy_stream(download, destination)
 end
@@ -225,8 +211,6 @@ def find_or_create_directory(directory_name)
 end
 
 def is_valid_token?(root_url, token)
-  # TODO remove when finished
-  puts "checking valid token? #{root_url}"
   return false unless token.is_a?(String) && token =~ /^[1-9A-Za-z][^OIl]{23}$/
   url = "#{root_url}/submissions/validate_token?token=#{token}"
   uri = URI.parse(url)
@@ -248,8 +232,7 @@ def upstream_repo(root_url, token)
   res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
     http.request(req)
   end
-  # TODO remove when finished
-  p result = Oj.load(res.body)
+  result = Oj.load(res.body)
   result.values_at("repo_slug", "spec_folder_sha", "source_code_url")
 rescue => e
   return false

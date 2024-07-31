@@ -20,7 +20,7 @@ namespace :grade do
     config_dir_name = find_or_create_directory(".vscode")
     config_file_name = "#{config_dir_name}/.ltici_apitoken.yml"
     student_config = {}
-    student_config["submission_url"] = "https://2fe2-149-75-206-231.ngrok-free.app"
+    student_config["submission_url"] = "https://grades.firstdraft.com"
 
     if File.exist?(config_file_name)
       begin
@@ -32,7 +32,7 @@ namespace :grade do
       file_token = config["personal_access_token"]
       student_config["submission_url"] = config["submission_url"]
     else
-      submission_url = "https://2fe2-149-75-206-231.ngrok-free.app"
+      submission_url = "https://grades.firstdraft.com"
     end
     if file_token.nil? && ENV.has_key?("LTICI_GITPOD_APITOKEN")
       input_token = ENV.fetch("LTICI_GITPOD_APITOKEN")
@@ -108,7 +108,7 @@ namespace :grade do
   task :reset_token do
     config_dir_name = find_or_create_directory(".vscode")
     config_file_name = "#{config_dir_name}/.ltici_apitoken.yml"
-    submission_url = "https://2fe2-149-75-206-231.ngrok-free.app"
+    submission_url = "https://grades.firstdraft.com"
 
     student_config = {}
     student_config["submission_url"] = submission_url

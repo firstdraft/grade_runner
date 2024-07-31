@@ -76,16 +76,16 @@ namespace :grade do
         set_upstream_remote(full_reponame)
         sync_specs_with_source(full_reponame, remote_spec_folder_sha, source_code_url)
 
-        # path = File.join(project_root, "/tmp/output/#{Time.now.to_i}.json")
-        # `bin/rails db:migrate RAILS_ENV=test` if defined?(Rails)
-        # `RAILS_ENV=test bundle exec rspec --format JsonOutputFormatter --out #{path}`
-        # rspec_output_json = Oj.load(File.read(path))
-        # github_email = `git config user.email`.chomp
-        # username = github_username(github_email)
-        # reponame = project_root.to_s.split("/").last
-        # sha = `git rev-parse HEAD`.slice(0..7)
+        path = File.join(project_root, "/tmp/output/#{Time.now.to_i}.json")
+        `bin/rails db:migrate RAILS_ENV=test` if defined?(Rails)
+        `RAILS_ENV=test bundle exec rspec --format JsonOutputFormatter --out #{path}`
+        rspec_output_json = Oj.load(File.read(path))
+        github_email = `git config user.email`.chomp
+        username = github_username(github_email)
+        reponame = project_root.to_s.split("/").last
+        sha = `git rev-parse HEAD`.slice(0..7)
 
-        # GradeRunner::Runner.new(submission_url, token, rspec_output_json, username, reponame, sha, "manual").process
+        GradeRunner::Runner.new(submission_url, token, rspec_output_json, username, reponame, sha, "manual").process
       end
     else
       puts "We couldn't find your access token, so we couldn't record your grade. Please click on the assignment link again and run the rails grade ...  command shown there."

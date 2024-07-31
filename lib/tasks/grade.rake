@@ -143,9 +143,8 @@ def sync_specs_with_source(full_reponame, remote_sha, repo_url)
   local_sha = `git ls-tree HEAD #{project_root.join('spec')}`.chomp.split[2]
 
   unless remote_sha == local_sha
-    # Define the directory you want to clear
     files_and_subfolders_inside_specs = Dir.glob("spec/*")
-    # Use FileUtils to remove the contents of the directory
+    # Remove the contents of the directory
     FileUtils.rm_rf(files_and_subfolders_inside_specs)
 
     find_or_create_directory("tmp")

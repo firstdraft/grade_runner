@@ -145,11 +145,12 @@ def sync_specs_with_source(full_reponame, remote_sha, repo_url)
   local_sha = `git ls-tree HEAD #{project_root.join('spec')}`.chomp.split[2]
 
   unless remote_sha == local_sha
-    files_and_subfolders_inside_specs = Dir.glob("spec/*")
-    # Remove the contents of the directory
-    FileUtils.rm_rf(files_and_subfolders_inside_specs)
-
     find_or_create_directory("tmp")
+    find_or_create_directory("tmp/backup")
+    files_and_subfolders_inside_specs = Dir.glob("spec/*")
+    # Temporarily move specs
+    FileUtils.mv(files_and_subfolders_inside_specs, "tmp/backup")
+
     download_file(repo_url, "tmp/spec.zip")
     extracted_zip_folder = extract_zip("tmp/spec.zip", "tmp")
     source_directory = extracted_zip_folder.join("spec")
@@ -157,6 +158,7 @@ def sync_specs_with_source(full_reponame, remote_sha, repo_url)
 
     FileUtils.rm(project_root.join("tmp/spec.zip"))
     FileUtils.rm_rf(extracted_zip_folder)
+    FileUtils.rm_rf("tmp/backup")
     `git add spec/`
     `git commit spec/ -m "Update spec/ folder to latest version" --author "First Draft <grades@firstdraft.com>"`
   end
@@ -243,13 +245,11 @@ def retrieve_github_username
   config_dir_name = find_or_create_directory(".vscode")
   config_file_name = "#{config_dir_name}/.ltici_apitoken.yml"
   if File.exist?(config_file_name)
-    puts "retrieving from f ile"
     config = YAML.load_file(config_file_name)
     if config["github_username"].present?
       return config["github_username"]
     end
   else
-    puts "searching w/ octokit.."
     github_email = `git config user.email`.chomp
     return "" if github_email.blank?
     username = `git config user.name`.chomp

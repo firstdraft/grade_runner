@@ -81,8 +81,7 @@ namespace :grade do
         `bin/rails db:migrate RAILS_ENV=test` if defined?(Rails)
         `RAILS_ENV=test bundle exec rspec --format JsonOutputFormatter --out #{path}`
         rspec_output_json = Oj.load(File.read(path))
-        github_email = `git config user.email`.chomp
-        username = github_username(github_email)
+        username = retrieve_github_username
         reponame = project_root.to_s.split("/").last
         sha = `git rev-parse HEAD`.slice(0..7)
 
@@ -127,6 +126,7 @@ namespace :grade do
 
       unless new_personal_access_token.empty?
         student_config["personal_access_token"] = new_personal_access_token
+        student_config["github_username"] = retrieve_github_username
         update_config_file(config_file_name, student_config)
         token = new_personal_access_token
       end
@@ -137,11 +137,11 @@ namespace :grade do
 end
 
 def sync_specs_with_source(full_reponame, remote_sha, repo_url)
+  # Unstage staged changes in spec folder
+  `git restore --staged spec/* `
   # Discard unstaged changes in spec folder
   `git checkout spec -q`
   `git clean spec -f -q`
-  # Discard staged changes in spec folder
-  `git restore spec/* `
   local_sha = `git ls-tree HEAD #{project_root.join('spec')}`.chomp.split[2]
 
   unless remote_sha == local_sha
@@ -158,7 +158,7 @@ def sync_specs_with_source(full_reponame, remote_sha, repo_url)
     FileUtils.rm(project_root.join("tmp/spec.zip"))
     FileUtils.rm_rf(extracted_zip_folder)
     `git add spec/`
-    `git commit spec/ -m "Update spec/ folder to match latest version" --author "First Draft <grades@firstdraft.com>"`
+    `git commit spec/ -m "Update spec/ folder to latest version" --author "First Draft <grades@firstdraft.com>"`
   end
 end
 
@@ -239,14 +239,26 @@ rescue => e
   return false
 end
 
-def github_username(primary_email)
-  return "" if primary_email.blank?
-  username = `git config user.name`.chomp
-  search_results = Octokit.search_users("#{primary_email} in:email").fetch(:items)
-  if search_results.present?
-    username = search_results.first.fetch(:login, username)
+def retrieve_github_username
+  config_dir_name = find_or_create_directory(".vscode")
+  config_file_name = "#{config_dir_name}/.ltici_apitoken.yml"
+  if File.exist?(config_file_name)
+    puts "retrieving from f ile"
+    config = YAML.load_file(config_file_name)
+    if config["github_username"].present?
+      return config["github_username"]
+    end
+  else
+    puts "searching w/ octokit.."
+    github_email = `git config user.email`.chomp
+    return "" if github_email.blank?
+    username = `git config user.name`.chomp
+    search_results = Octokit.search_users("#{github_email} in:email").fetch(:items)
+    if search_results.present?
+      username = search_results.first.fetch(:login, username)
+    end
+    return username
   end
-  username
 end
 
 def project_root

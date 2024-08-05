@@ -140,6 +140,8 @@ def sync_specs_with_source(full_reponame, remote_sha, repo_url)
   # Discard unstaged changes in spec folder
   `git checkout spec -q`
   `git clean spec -f -q`
+  # Discard staged changes in spec folder
+  `git restore spec/* `
   local_sha = `git ls-tree HEAD #{project_root.join('spec')}`.chomp.split[2]
 
   unless remote_sha == local_sha
@@ -156,7 +158,7 @@ def sync_specs_with_source(full_reponame, remote_sha, repo_url)
     FileUtils.rm(project_root.join("tmp/spec.zip"))
     FileUtils.rm_rf(extracted_zip_folder)
     `git add spec/`
-    `git commit spec/ -m "Update project tests" --author "First Draft <grades@firstdraft.com>"`
+    `git commit spec/ -m "Update spec/ folder to match latest version" --author "First Draft <grades@firstdraft.com>"`
   end
 end
 

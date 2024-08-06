@@ -21,6 +21,7 @@ namespace :grade do
     config_file_name = "#{config_dir_name}/.ltici_apitoken.yml"
     student_config = {}
     student_config["submission_url"] = "https://grades.firstdraft.com"
+    student_config["github_username"] = retrieve_github_username
 
     if File.exist?(config_file_name)
       begin
@@ -112,6 +113,7 @@ namespace :grade do
 
     student_config = {}
     student_config["submission_url"] = submission_url
+    student_config["github_username"] = retrieve_github_username
     puts "Enter your access token for this project"
     new_personal_access_token = ""
 
@@ -126,7 +128,6 @@ namespace :grade do
 
       unless new_personal_access_token.empty?
         student_config["personal_access_token"] = new_personal_access_token
-        student_config["github_username"] = retrieve_github_username
         update_config_file(config_file_name, student_config)
         token = new_personal_access_token
       end

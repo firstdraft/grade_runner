@@ -11,7 +11,7 @@ gem "rake", "~> 13"
 # Include everything needed to run rake, tests, features, etc.
 group :development do
   gem "rspec", "~> 3.5.0"
-  gem "rdoc", "~> 6.1"
+  gem "rdoc", "~> 6.6"
   gem "bundler", "~> 2.1.4"
   gem "juwelier", "~> 2.1.0"
   gem "simplecov", ">= 0"

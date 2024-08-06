@@ -2,6 +2,9 @@ require "active_support/core_ext/object/blank"
 require "grade_runner/runner"
 require "octokit"
 require "yaml"
+require "zip"
+require "fileutils"
+require "open-uri"
 
 desc "Alias for \"grade:next\"."
 task grade: "grade:all" do
@@ -14,10 +17,11 @@ namespace :grade do
     input_token = ARGV[1]
     file_token = nil
 
-    config_dir_name = find_or_create_config_dif
+    config_dir_name = find_or_create_directory(".vscode")
     config_file_name = "#{config_dir_name}/.ltici_apitoken.yml"
     student_config = {}
     student_config["submission_url"] = "https://grades.firstdraft.com"
+    student_config["github_username"] = retrieve_github_username
 
     if File.exist?(config_file_name)
       begin
@@ -47,7 +51,6 @@ namespace :grade do
       while new_personal_access_token == "" do
         print "> "
         new_personal_access_token = $stdin.gets.chomp.strip
-
         if new_personal_access_token!= "" && is_valid_token?(submission_url, new_personal_access_token) == false
           puts "Please enter valid token"
           new_personal_access_token = ""
@@ -67,17 +70,19 @@ namespace :grade do
         student_config["personal_access_token"] = nil
         update_config_file(config_file_name, student_config)
         puts "Your access token looked invalid, so we've reset it to be blank. Please re-run rails grade and, when asked, copy-paste your token carefully from the assignment page."
-      else
-        full_reponame = upstream_repo(submission_url, token)
+      else 
+        resource_info = upstream_repo(submission_url, token)
+        full_reponame = resource_info.fetch("repo_slug")
+        remote_spec_folder_sha = resource_info.fetch("spec_folder_sha")
+        source_code_url = resource_info.fetch("source_code_url")
         set_upstream_remote(full_reponame)
-        sync_specs_with_source(full_reponame)
+        sync_specs_with_source(full_reponame, remote_spec_folder_sha, source_code_url)
 
         path = File.join(project_root, "/tmp/output/#{Time.now.to_i}.json")
         `bin/rails db:migrate RAILS_ENV=test` if defined?(Rails)
         `RAILS_ENV=test bundle exec rspec --format JsonOutputFormatter --out #{path}`
         rspec_output_json = Oj.load(File.read(path))
-        github_email = `git config user.email`.chomp
-        username = github_username(github_email)
+        username = retrieve_github_username
         reponame = project_root.to_s.split("/").last
         sha = `git rev-parse HEAD`.slice(0..7)
 
@@ -102,12 +107,13 @@ namespace :grade do
 
   desc "Reset access token saved in YAML file."
   task :reset_token do
-    config_dir_name = find_or_create_config_dif
+    config_dir_name = find_or_create_directory(".vscode")
     config_file_name = "#{config_dir_name}/.ltici_apitoken.yml"
     submission_url = "https://grades.firstdraft.com"
 
     student_config = {}
     student_config["submission_url"] = submission_url
+    student_config["github_username"] = retrieve_github_username
     puts "Enter your access token for this project"
     new_personal_access_token = ""
 
@@ -131,34 +137,62 @@ namespace :grade do
 
 end
 
-def sync_specs_with_source(full_reponame)
-  if Octokit.repository?(full_reponame)
-    repo_contents = Octokit.contents(full_reponame)
-    remote_spec_folder = repo_contents.find { |git_object| git_object[:name] == 'spec' }
-    if remote_spec_folder.blank?
-      abort("The project #{full_reponame} does not have specs.")
-    end
-    remote_sha = remote_spec_folder[:sha]
-    # Discard unstaged changes in spec folder
-    `git checkout spec -q`
-    `git clean spec -f -q`
-    local_sha = `git ls-tree HEAD #{project_root.join('spec')}`.chomp.split[2]
+def sync_specs_with_source(full_reponame, remote_sha, repo_url)
+  # Unstage staged changes in spec folder
+  `git restore --staged spec/* `
+  # Discard unstaged changes in spec folder
+  `git checkout spec -q`
+  `git clean spec -f -q`
+  local_sha = `git ls-tree HEAD #{project_root.join('spec')}`.chomp.split[2]
 
-    unless remote_sha == local_sha
-      `git fetch upstream -q`
-      # Remove local contents of spec folder
-      `rm -rf spec/*`
-      default_branch = `git remote show upstream | grep 'HEAD branch' | cut -d' ' -f5`.chomp
-      # Overwrite local contents of spec folder with contents from upstream branch
-      `git checkout upstream/#{default_branch} spec/ -q`
-      # Unstage new spec file contents
-      # - if wrong token is used, spec files can be removed properly when unstaged
-      # - spec file changes committed by learner are removed and updated
-      # - we are not committing spec file changes by default to avoid confusing the git history
-      `git restore --staged spec/*`
+  unless remote_sha == local_sha
+    find_or_create_directory("tmp")
+    find_or_create_directory("tmp/backup")
+    files_and_subfolders_inside_specs = Dir.glob("spec/*")
+    # Temporarily move specs
+    FileUtils.mv(files_and_subfolders_inside_specs, "tmp/backup")
+
+    download_file(repo_url, "tmp/spec.zip")
+    extracted_zip_folder = extract_zip("tmp/spec.zip", "tmp")
+    source_directory = extracted_zip_folder.join("spec")
+    overwrite_spec_folder(source_directory)
+
+    FileUtils.rm(project_root.join("tmp/spec.zip"))
+    FileUtils.rm_rf(extracted_zip_folder)
+    FileUtils.rm_rf("tmp/backup")
+    `git add spec/`
+    `git commit spec/ -m "Update spec/ folder to latest version" --author "First Draft <grades@firstdraft.com>"`
+  end
+end
+
+def download_file(url, destination)
+  download = URI.open(url)
+  IO.copy_stream(download, destination)
+end
+
+def extract_zip(folder, destination)
+  extracted_file_path = project_root.join(destination)
+  Zip::File.open(folder) do |zip_file|
+    zip_file.each_with_index do |file, index|
+      # Get name of root folder in zip file
+      if index == 0
+        extracted_file_path = extracted_file_path.join(file.name)
+      end
+      file_path = File.join(destination, file.name)
+      FileUtils.mkdir_p(File.dirname(file_path))
+      file.extract(file_path)
     end
-  else
-    abort("The project #{full_reponame} does not exist.")
+  end
+  extracted_file_path
+end
+
+def overwrite_spec_folder(source_directory)
+  destination_directory = "spec"
+  # Get all files in the source directory
+  files = Dir.glob("#{source_directory}/*")
+  # Move each file to the destination directory
+  files.each do |file|
+    FileUtils.mv(file, destination_directory)
   end
 end
 
@@ -175,10 +209,10 @@ def update_config_file(config_file_name, config)
   File.write(config_file_name, YAML.dump(config))
 end
 
-def find_or_create_config_dif
-  config_dir_name = File.join(project_root, ".vscode")
-  Dir.mkdir(config_dir_name) unless Dir.exist?(config_dir_name)
-  config_dir_name
+def find_or_create_directory(directory_name)
+  directory = File.join(project_root, directory_name)
+  Dir.mkdir(directory) unless Dir.exist?(directory)
+  directory
 end
 
 def is_valid_token?(root_url, token)
@@ -203,20 +237,29 @@ def upstream_repo(root_url, token)
   res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
     http.request(req)
   end
-  result = Oj.load(res.body)
-  result["repo_slug"]
+  Oj.load(res.body)
 rescue => e
   return false
 end
 
-def github_username(primary_email)
-  return "" if primary_email.blank?
-  username = `git config user.name`.chomp
-  search_results = Octokit.search_users("#{primary_email} in:email").fetch(:items)
-  if search_results.present?
-    username = search_results.first.fetch(:login, username)
+def retrieve_github_username
+  config_dir_name = find_or_create_directory(".vscode")
+  config_file_name = "#{config_dir_name}/.ltici_apitoken.yml"
+  if File.exist?(config_file_name)
+    config = YAML.load_file(config_file_name)
+    if config["github_username"].present?
+      return config["github_username"]
+    end
+  else
+    github_email = `git config user.email`.chomp
+    return "" if github_email.blank?
+    username = `git config user.name`.chomp
+    search_results = Octokit.search_users("#{github_email} in:email").fetch(:items)
+    if search_results.present?
+      username = search_results.first.fetch(:login, username)
+    end
+    return username
   end
-  username
 end
 
 def project_root

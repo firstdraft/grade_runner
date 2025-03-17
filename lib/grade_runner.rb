@@ -13,20 +13,14 @@ module GradeRunner
 
     def override_local_specs
       if @override_local_specs.nil?
-        "OOPS"
+        true
       else
-        "FALSE"#@override_local_specs
+        @override_local_specs
       end
     end
 
     def config
       yield self
     end
-  end
-
-  def self.init
-    puts "====="
-    puts @default_points
-    puts @override_local_specs
   end
 end

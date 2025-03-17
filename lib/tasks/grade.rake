@@ -51,7 +51,7 @@ namespace :grade do
       while new_personal_access_token == "" do
         print "> "
         new_personal_access_token = $stdin.gets.chomp.strip
-        if false#new_personal_access_token!= "" && is_valid_token?(submission_url, new_personal_access_token) == false
+        if new_personal_access_token!= "" && is_valid_token?(submission_url, new_personal_access_token) == false
           puts "Please enter valid token"
           new_personal_access_token = ""
         end
@@ -64,25 +64,20 @@ namespace :grade do
       end
     end
     
-    if true #token.present? 
+    if token.present? 
 
-      if false #is_valid_token?(submission_url, token) == false
+      if is_valid_token?(submission_url, token) == false
         student_config["personal_access_token"] = nil
         update_config_file(config_file_name, student_config)
         puts "Your access token looked invalid, so we've reset it to be blank. Please re-run rails grade and, when asked, copy-paste your token carefully from the assignment page."
       else 
         if GradeRunner.override_local_specs
-          puts "overriding local specs"
-          # resource_info = upstream_repo(submission_url, token)
-          # full_reponame = resource_info.fetch("repo_slug")
-          # remote_spec_folder_sha = resource_info.fetch("spec_folder_sha")
-          # source_code_url = resource_info.fetch("source_code_url")
-          # set_upstream_remote(full_reponame)
-          # sync_specs_with_source(full_reponame, remote_spec_folder_sha, source_code_url)
-          return
-        else
-          puts "not doing nothin'"
-          return
+          resource_info = upstream_repo(submission_url, token)
+          full_reponame = resource_info.fetch("repo_slug")
+          remote_spec_folder_sha = resource_info.fetch("spec_folder_sha")
+          source_code_url = resource_info.fetch("source_code_url")
+          set_upstream_remote(full_reponame)
+          sync_specs_with_source(full_reponame, remote_spec_folder_sha, source_code_url)
         end
 
         path = File.join(project_root, "/tmp/output/#{Time.now.to_i}.json")

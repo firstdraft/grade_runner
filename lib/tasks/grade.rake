@@ -76,7 +76,10 @@ namespace :grade do
         remote_spec_folder_sha = resource_info.fetch("spec_folder_sha")
         source_code_url = resource_info.fetch("source_code_url")
         set_upstream_remote(full_reponame)
-        sync_specs_with_source(full_reponame, remote_spec_folder_sha, source_code_url)
+
+        if GradeRunner.override_local_specs
+          sync_specs_with_source(full_reponame, remote_spec_folder_sha, source_code_url)
+        end
 
         path = File.join(project_root, "/tmp/output/#{Time.now.to_i}.json")
         `bin/rails db:migrate RAILS_ENV=test` if defined?(Rails)

@@ -16,7 +16,7 @@ module GradeRunner
 
     def process
       puts "* Submitting the results."
-      post_to_grades
+      # post_to_grades
     end
 
     private

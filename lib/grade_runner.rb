@@ -12,7 +12,11 @@ module GradeRunner
     end
 
     def override_local_specs
-      @override_local_specs || true
+      if @override_local_specs.nil?
+        "OOPS"
+      else
+        "FALSE"#@override_local_specs
+      end
     end
 
     def config
@@ -21,6 +25,8 @@ module GradeRunner
   end
 
   def self.init
-
+    puts "====="
+    puts @default_points
+    puts @override_local_specs
   end
 end

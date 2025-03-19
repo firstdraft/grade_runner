@@ -8,7 +8,7 @@ A Ruby client for [firstdraft Grades](https://grades.firstdraft.com)
 Add this line to your application's Gemfile:
 
 ```ruby
-gem "grade_runner", github: "firstdraft/grade_runner"
+gem "grade_runner"
 ```
 
 And then execute:
@@ -25,6 +25,19 @@ After installed, run `rails grade` to run specs.
 #### Optional Configuration
 
 As of version 0.0.13, you can override the default points used on each test and the overwriting behavior of the spec folder by:
+
+Moving the gem into the `:development, :test` group in your Gemfile:
+
+```ruby
+# Gemfile
+
+# ...
+group :development, :test do
+  gem "grade_runner", "~> 0.0.13"
+  # ...
+end
+# ...
+```
 
 Adding this configurable initializer:
 

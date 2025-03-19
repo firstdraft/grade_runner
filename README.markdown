@@ -77,6 +77,8 @@ require "grade_runner/formatters/hint_formatter"
 # ...
 ```
 
+Note that for that last step, the gem formatters can be overridden by requiring the formatters present in the local project like before.
+
 ### Ruby
 
 In order to load and run the Rake task, you need to load it.

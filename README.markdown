@@ -22,6 +22,48 @@ $ bundle
 
 After installed, run `rails grade` to run specs.
 
+#### Optional Configuration
+
+As of version 0.0.13, you can override the default points used on each test and the overwriting behavior of the spec folder by:
+
+Adding this configurable initializer:
+
+```rb
+# config/initializers/grade_runner.rb
+
+if Rails.env.development? || Rails.env.test?
+  GradeRunner.config do |config|
+    config.default_points = 1           # default 1
+    config.override_local_specs = false # default true
+  end
+end
+```
+
+Adding this line to the `Rakefile`:
+
+```rb
+# Rakefile
+
+require_relative "config/initializers/grade_runner"
+```
+
+And making this change to the `spec_helper.rb`:
+
+```rb
+# spec/spec_helper.rb
+
+# ...
+
+# GradeRunner updates on https://github.com/firstdraft/grade_runner/pull/88
+# make the formatters available from within the grade_runner gem
+require "grade_runner/formatters/json_output_formatter"
+require "grade_runner/formatters/hint_formatter"
+# require "#{File.expand_path("../support/json_output_formatter", __FILE__)}"
+# require "#{File.expand_path("../support/hint_formatter", __FILE__)}"
+
+# ...
+```
+
 ### Ruby
 
 In order to load and run the Rake task, you need to load it.

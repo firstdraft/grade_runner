@@ -8,7 +8,7 @@ A Ruby client for [firstdraft Grades](https://grades.firstdraft.com)
 Add this line to your application's Gemfile:
 
 ```ruby
-gem "grade_runner", github: "firstdraft/grade_runner"
+gem "grade_runner"
 ```
 
 And then execute:
@@ -21,6 +21,63 @@ $ bundle
 ### Rails
 
 After installed, run `rails grade` to run specs.
+
+#### Optional Configuration
+
+As of version 0.0.13, you can override the default points used on each test and the overwriting behavior of the spec folder by:
+
+Moving the gem into the `:development, :test` group in your Gemfile:
+
+```ruby
+# Gemfile
+
+# ...
+group :development, :test do
+  gem "grade_runner", "~> 0.0.13"
+  # ...
+end
+# ...
+```
+
+Adding this configurable initializer:
+
+```rb
+# config/initializers/grade_runner.rb
+
+if Rails.env.development? || Rails.env.test?
+  GradeRunner.config do |config|
+    config.default_points = 1           # default 1
+    config.override_local_specs = false # default true
+  end
+end
+```
+
+Adding this line to the `Rakefile`:
+
+```rb
+# Rakefile
+
+require_relative "config/initializers/grade_runner"
+```
+
+And making this change to the `spec_helper.rb`:
+
+```rb
+# spec/spec_helper.rb
+
+# ...
+
+# GradeRunner updates on https://github.com/firstdraft/grade_runner/pull/88
+# make the formatters available from within the grade_runner gem
+require "grade_runner/formatters/json_output_formatter"
+require "grade_runner/formatters/hint_formatter"
+# require "#{File.expand_path("../support/json_output_formatter", __FILE__)}"
+# require "#{File.expand_path("../support/hint_formatter", __FILE__)}"
+
+# ...
+```
+
+Note that for that last step, the gem formatters can be overridden by requiring the formatters present in the local project like before.
 
 ### Ruby
 

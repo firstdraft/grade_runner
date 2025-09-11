@@ -2,10 +2,6 @@ require 'rails'
 
 module GradeRunner
   class Railtie < ::Rails::Railtie
-
-     rake_tasks do
-      load "tasks/grade_runner.rake"
-      load "tasks/grade.rake"
-     end
+    rake_tasks { load "grade_runner/tasks.rb" }
   end
 end

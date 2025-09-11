@@ -1,7 +1,6 @@
 # grade_runner
 
-A Ruby client for [firstdraft Grades](https://grades.firstdraft.com)
-
+A Ruby client for [Grades](https://grades.dpi.dev)
 
 ## Installation
 
@@ -48,6 +47,7 @@ if Rails.env.development? || Rails.env.test?
   GradeRunner.config do |config|
     config.default_points = 1           # default 1
     config.override_local_specs = false # default true
+    config.submission_url = "https://your-grading-server-url.com" # Set custom submission URL
   end
 end
 ```

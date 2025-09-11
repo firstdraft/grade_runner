@@ -3,7 +3,6 @@ require "oj"
 
 module GradeRunner
   class Runner
-
     def initialize(submission_root_url, grades_access_token, rspec_output_json, username, reponame, sha, source)
       @submission_url = submission_root_url + submission_path
       @grades_access_token = grades_access_token
@@ -47,6 +46,5 @@ module GradeRunner
         source: @source
       }
     end
-
   end
 end

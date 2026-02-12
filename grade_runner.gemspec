@@ -6,7 +6,7 @@
 
 Gem::Specification.new do |s|
   s.name = "grade_runner".freeze
-  s.version = "0.0.14"
+  s.version = "0.0.15"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
@@ -29,6 +29,8 @@ Gem::Specification.new do |s|
     "VERSION",
     "grade_runner.gemspec",
     "lib/grade_runner.rb",
+    "lib/grade_runner/formatters/hint_formatter.rb",
+    "lib/grade_runner/formatters/json_output_formatter.rb",
     "lib/grade_runner/railtie.rb",
     "lib/grade_runner/runner.rb",
     "lib/tasks/grade.rake",

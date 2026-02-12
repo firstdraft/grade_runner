@@ -3,6 +3,7 @@ source "https://rubygems.org"
 # Example:
 gem "activesupport", ">= 2.3.5"
 gem "oj", "~> 3.13.12"
+gem "ostruct"
 gem "octokit", "~> 5.0"
 gem "zip"
 gem "faraday-retry", "~> 1.0.3"

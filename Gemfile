@@ -6,7 +6,7 @@ gem "oj", "~> 3.13.12"
 gem "ostruct"
 gem "octokit", "~> 5.0"
 gem "zip"
-gem "faraday-retry", "~> 1.0.3"
+gem "faraday-retry", "~> 2.0"
 gem "rake", "~> 13"
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.

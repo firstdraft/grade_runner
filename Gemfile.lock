@@ -142,9 +142,7 @@ GEM
     thread_safe (0.3.6)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
-    webrick (1.7.0)
-    yard (0.9.28)
-      webrick (~> 1.7.0)
+    yard (0.9.36)
     zip (2.0.2)
 
 PLATFORMS

@@ -2,7 +2,7 @@ source "https://rubygems.org"
 # Add dependencies required to use your gem here.
 # Example:
 gem "activesupport", ">= 2.3.5"
-gem "oj", "~> 3.13.12"
+gem "oj", "~> 3.17", ">= 3.17.3"
 gem "ostruct"
 gem "octokit", "~> 5.0"
 gem "zip"
